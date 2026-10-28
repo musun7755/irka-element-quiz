@@ -305,7 +305,7 @@ html:not([lang="zh-Hant"]) .res-name h2{font-size:clamp(26px,7vw,36px)}
         <h3>元素共鳴</h3>
         <ul class="reso" id="rReso"></ul>
       </div>
-      <p class="lore">元素只作用於自身與周邊，使用會消耗精力。強度因人而異，可以鍛鍊。</p>
+      <p class="lore">元素只作用於自身與周邊，使用會消耗精力。強度因人而異，可以鍛鍊。稀有元素需要更強的共鳴才會覺醒。</p>
       <div class="actions">
         <button class="btn primary" id="saveBtn" type="button">儲存結果圖</button>
         <button class="btn" id="againBtn" type="button">重新測驗</button>
@@ -338,7 +338,7 @@ html:not([lang="zh-Hant"]) .res-name h2{font-size:clamp(26px,7vw,36px)}
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="locales.js?v=20261029"></script>
+<script src="locales.js?v=20261029-2"></script>
 <script>
 const tr=I18N.tr;
 I18N.localizePage();
@@ -406,7 +406,7 @@ const EL={
     traits:[tr('只有身體局部異變，不會整個獸化'),tr('異變部位因人而異，手臂、腿、眼或背，每人固定一到兩處'),tr('特徵近似覺醒時接觸過的怪物，例如鱗片、利爪、豎瞳'),tr('可以隨意收放，解除後恢復原狀')],
     side:tr('食量變大，容易餓')}
 };
-/* 每個選項：[文字, 主元素碼+副元素碼]，主 +2、副 +1。九種元素各當 6 次主、6 次副，每題同一元素只出現一次，機率相同。
+/* 每個選項：[文字, 主元素碼+副元素碼]，主 +2、副 +1。九種元素各當 6 次主、6 次副，每題同一元素只出現一次，題目權重相同；覺醒門檻另見 analyze。
    M金 W水 F火 T雷 E地 A風 V虛空 L殘月 X異化 */
 const K={M:'metal',W:'water',F:'fire',T:'lightning',E:'earth',A:'wind',V:'void',L:'moon',X:'feral'};
 const QS=[
@@ -487,11 +487,12 @@ function score(picks){
   picks.forEach(o=>{s[o[1]]+=2;s[o[2]]+=1});
   return s;
 }
-/* 穿越者必定雙元素：分數最高的兩種同時覺醒，同分隨機 */
+/* 穿越者必定雙元素；稀有元素的覺醒判定扣 1 分，原始共鳴分數保留，判定同分時隨機。 */
 function analyze(s,rand){
   const keys=ORDER.slice();
   for(let i=keys.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[keys[i],keys[j]]=[keys[j],keys[i]]}
-  keys.sort((x,y)=>s[y]-s[x]);
+  const awakeningScore=k=>s[k]-(EL[k].rare?1:0);
+  keys.sort((x,y)=>awakeningScore(y)-awakeningScore(x));
   const a=keys[0],b=keys[1];
   return{dual:true,a,b};
 }
@@ -949,7 +950,7 @@ function drawSkills(k,n,rand){
     });
     y+=70;
     x.font='400 24px '+F_BODY;x.fillStyle=T.faint;
-    wrapText(x,tr('元素只作用於自身與周邊，使用會消耗精力。強度因人而異，可以鍛鍊。'),IW).forEach(l=>{y+=38;x.fillText(l,L,y)});
+    wrapText(x,tr('元素只作用於自身與周邊，使用會消耗精力。強度因人而異，可以鍛鍊。稀有元素需要更強的共鳴才會覺醒。'),IW).forEach(l=>{y+=38;x.fillText(l,L,y)});
     y+=90;
     x.textAlign='center';x.font='500 28px '+F_BODY;x.fillStyle=T.faint;sp('6px');
     x.fillText(tr('《裂空的伊爾卡》元素測驗'),CW/2,y);sp('0px');

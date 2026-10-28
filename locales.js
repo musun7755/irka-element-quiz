@@ -2053,10 +2053,10 @@ const TRANSLATIONS = [
     "원소 공명"
   ],
   [
-    "元素只作用於自身與周邊，使用會消耗精力。強度因人而異，可以鍛鍊。",
-    "Elements affect only you and your immediate surroundings. Using them consumes energy. Strength varies by person and grows with training.",
-    "元素が作用するのは自分自身とその周囲のみ。使用には気力を消耗する。強さには個人差があり、鍛えることで伸ばせる。",
-    "원소는 자신과 주변에만 작용하며, 사용하면 기력이 소모된다. 강도는 사람마다 다르고 단련할 수 있다."
+    "元素只作用於自身與周邊，使用會消耗精力。強度因人而異，可以鍛鍊。稀有元素需要更強的共鳴才會覺醒。",
+    "Elements affect only you and your immediate surroundings. Using them consumes energy. Strength varies by person and grows with training. Rare elements require stronger resonance to awaken.",
+    "元素が作用するのは自分自身とその周囲のみ。使用には気力を消耗する。強さには個人差があり、鍛えることで伸ばせる。稀少元素の覚醒には、より強い共鳴が必要。",
+    "원소는 자신과 주변에만 작용하며, 사용하면 기력이 소모된다. 강도는 사람마다 다르고 단련할 수 있다. 희귀 원소를 각성하려면 더 강한 공명이 필요하다."
   ],
   [
     "《裂空的伊爾卡》元素測驗",
