@@ -207,11 +207,26 @@ button:focus-visible{outline:2px solid var(--rift);outline-offset:3px}
   .enter,.enter .glyph,.tap-hint,.sysbox.pop,.sysbox .who::before{animation:none}
   .line,.btn,.opt,.toast{transition:none}
 }
+/* Language controls and room for translated labels. */
+.language-bar{position:relative;z-index:2;display:flex;justify-content:flex-end;align-items:center;gap:8px;padding-top:18px;font-size:12px;color:var(--ink-dim)}
+.language-bar select{font:inherit;font-size:14px;padding:7px 10px;background:var(--night-2);color:var(--ink);border:1px solid var(--line);border-radius:3px;max-width:170px}
+.language-bar select:focus-visible{outline:2px solid var(--rift);outline-offset:3px}
+html:not([lang="zh-Hant"]) body{letter-spacing:0;overflow-wrap:break-word}
+html:not([lang="zh-Hant"]) .title,html:not([lang="zh-Hant"]) .btn,html:not([lang="zh-Hant"]) .tag,html:not([lang="zh-Hant"]) .eyebrow,html:not([lang="zh-Hant"]) .sheet-title,html:not([lang="zh-Hant"]) .block h3,html:not([lang="zh-Hant"]) .sk-sep{letter-spacing:.025em}
+html:not([lang="zh-Hant"]) .skill-list li{grid-template-columns:minmax(0,1fr);gap:5px}
+html:not([lang="zh-Hant"]) .sk-name{white-space:normal;max-width:100%}
+html:not([lang="zh-Hant"]) .reso li{grid-template-columns:minmax(6em,8em) minmax(0,1fr) 2.4ch}
+html:not([lang="zh-Hant"]) .roster-row{grid-template-columns:4.5em 1fr}
+html:not([lang="zh-Hant"]) .roster-label{letter-spacing:.025em;overflow-wrap:normal}
+html:not([lang="zh-Hant"]) .res-head{grid-template-columns:1fr}
+html:not([lang="zh-Hant"]) .res-name h2{font-size:clamp(26px,7vw,36px)}
+.glyph{font-family:"Chiron Sung HK","Noto Serif TC",serif}
 </style>
 </head>
 <body>
 <canvas id="sky" aria-hidden="true"></canvas>
 <main class="wrap">
+  <div class="language-bar"><label for="languageSelect">語言</label><select id="languageSelect" aria-label="語言"><option value="zh">繁體中文</option><option value="ko">한국어</option><option value="ja">日本語</option><option value="en">English</option></select></div>
   <div class="sky-gap"></div>
 
   <section id="start" class="screen">
@@ -322,146 +337,150 @@ button:focus-visible{outline:2px solid var(--rift);outline-offset:3px}
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="locales.js"></script>
 <script>
+const tr=I18N.tr;
+I18N.localizePage();
 /*DATA*/
 const ORDER=['metal','water','fire','lightning','earth','wind','void','moon','feral'];
 const EL={
-  metal:{name:'金',glyph:'金',rare:false,color:'#aeb9c6',
-    tagline:'說好要守的，就守到最後',
-    desc:'你相信能握在手裡的東西。答應過的事你不會反悔，想要的你會一錘一錘打出來。聚落裡最靠得住的那面牆，常常就是你。',
-    moment:'握住鐵管的那一刻，你摸得到金屬裡的紋路。',
-    base:['控金','凝出金屬或操控身邊的金屬，熟練可以改變形狀與硬度'],
-    pool:[['硬化', '讓皮膚或武器硬得像鋼鐵'], ['鍛造', '不用爐火，直接把金屬捏成工具'], ['鉤索', '把金屬拉成長鉤，盪到高處'], ['金屬刃', '把手邊的金屬拉成一把利刃'], ['迴旋刃', '甩出一片圓刃，會繞回手中'], ['鐵盾', '金屬在身前展開成盾，擋下撲擊'], ['鐵刺', '從地面或金屬表面刺出尖銳鐵刺'], ['磁吸', '把附近的金屬吸到手邊'], ['鋼針', '射出細長鋼針，專刺甲殼的縫隙'], ['金屬鞭', '把金屬拉成長鞭，能抽打也能纏住']]},
-  water:{name:'水',glyph:'水',rare:false,color:'#5aaae6',
-    tagline:'最冷靜的那一個',
-    desc:'你很少慌。別人吵成一團的時候，你已經在想下一步。你能包容很多事，可是被逼到底線，你會冷得像結了冰。',
-    moment:'渴到快撐不住的那天，你的掌心滲出了乾淨的水。',
-    base:['控水','凝出水或操控身邊的水，熟練可以改變形態與溫度'],
-    pool:[['淨水', '讓髒水變得能喝'], ['凍結', '讓水或敵人的腳瞬間結冰'], ['水刃', '把水壓成細流，切開皮肉'], ['冰牆', '立起一道冰牆擋住攻擊'], ['霧氣', '放出濃霧，遮住敵人的視線'], ['冰行', '腳下凝出冰面，滑行前進，經過的地方留下一道冰'], ['水牢', '把敵人困在一團水球裡']]},
-  fire:{name:'火',glyph:'火',rare:false,color:'#f26d3d',
-    tagline:'先衝再說',
-    desc:'你的情緒來得快，去得也快。你會第一個衝出去，也會第一個把凍僵的人拉到火邊。末日裡，總要有人把火點起來。',
-    moment:'那晚很冷，你只是想讓身邊的人暖一點。',
-    base:['控火','生出火或操控身邊的火，可以改變燃點與方向'],
-    pool:[['點燃', '讓碰到的東西起火'], ['加熱', '讓物體升溫，能把鐵燒到發紅'], ['火球', '擲出火球，撞上時炸開'], ['火牆', '在地上燃起一道火牆，擋住去路'], ['附火', '讓武器纏上火焰'], ['爆焰', '在近距離引爆一團烈火'], ['火蛇', '火焰化成蛇形，追著目標咬'], ['燎原', '火沿著地面一路蔓延，燒向目標'], ['火種', '留下一點火星，敵人靠近時炸開']]},
-  lightning:{name:'雷',glyph:'雷',rare:false,color:'#f0d44c',
-    tagline:'腦子轉得比誰都快',
-    desc:'你一眼就看得出哪裡不對勁，手比嘴還快。舊時代的機器到你手上會重新動起來，怪物撲過來時，你也總是最先反應的那個。',
-    moment:'指尖碰到斷掉的電線，整間屋子的燈亮了。',
-    base:['控雷','在指間生出電流，或操控身邊的電，改變它的去向'],
-    pool:[['麻痺', '電流讓目標短暫動彈不得'], ['供電', '替舊時代的機器重新通電'], ['電擊', '觸碰的瞬間放出強電'], ['雷鞭', '把雷電拉成長鞭抽打'], ['閃光', '爆出強光，讓敵人短暫失明'], ['落雷', '在小範圍內落下一道雷擊'], ['雷槍', '雷電凝成長槍，擲出貫穿'], ['連鎖', '電流在相鄰的敵人之間跳躍'], ['電療', '微弱電流讓痠痛與麻木退去']]},
-  earth:{name:'地',glyph:'地',rare:false,color:'#b9925a',
-    tagline:'把荒地守成家的人',
-    desc:'你不急。你會挑一塊地，蓋牆、開田、種下麵根，一年一年把它守成家。身邊的人來來去去，你一直都在。',
-    moment:'獸潮那一夜，你跪在泥裡，牆從你腳下長了出來。',
-    base:['控土','凝出土石或操控身邊的土石，讓它隆起、塌陷、移動'],
-    pool:[['築牆', '從地面立起一道土牆'], ['耕地', '一揮手，翻鬆整片田'], ['催生植物', '讓植物在幾息之間長大'], ['地刺', '腳下的地面竄出石刺'], ['流沙', '讓敵人腳下的地面變成流沙'], ['石膚', '皮膚覆上一層岩石，抵擋攻擊'], ['岩槍', '岩石凝成長槍，擲向目標'], ['震地', '重重一踏，震倒周圍的敵人'], ['荊棘纏繞', '催生荊棘，把敵人纏住']]},
-  wind:{name:'風',glyph:'風',rare:false,color:'#74d6b0',
-    tagline:'停不下來',
-    desc:'你最討厭被困住。地圖上空白的地方你都想去看看，探路、送信、獨自上路，你總是走得最遠。想找你，得先追得上你。',
-    moment:'被怪物逼到懸崖邊，你跳了下去，風接住了你。',
-    base:['控風','生出氣流或操控身邊的風，讓風聽你的'],
-    pool:[['加速', '風推著你，跑得比誰都快'], ['風刃', '射出看不見的風刃'], ['風壓', '強風把敵人壓倒或推開'], ['捲風', '在小範圍內捲起旋風'], ['風槍', '壓縮空氣，射出能貫穿的一擊'], ['氣爆', '壓縮空氣後瞬間炸開'], ['風鎧', '身邊纏著氣流，偏開飛來的攻擊'], ['順風', '讓同伴的腳步也跟著輕快起來'], ['浮空', '風托住身體，從高處落下也不會受傷']]},
-  void:{name:'虛空',glyph:'虛',rare:true,color:'#9c86e6',glyphFill:'#08070d',core:'#06050b',
-    tagline:'心裡有個沒有底的地方',
-    desc:'你習慣把東西收起來，包括情緒。平常看不出來，可一旦被逼到極限，連你自己都控制不住。',
-    moment:'你一直在忍。直到那一刻，眼前的空氣裂開了。',
-    base:['開裂口','在身邊撕開一道黑色裂口，初期約掌心大'],
-    pool:[['收納','把無生命的物體收進虛空，活物放進去會窒息'],['切割','用裂口邊緣切開甲殼與金屬'],['吞擊','在身前打開虛空，把飛來的攻擊吞進去'],['射出','把收著的東西從虛空高速射出'],['陷阱','在敵人腳下打開虛空，讓牠一腳踩空'],['飛刃','把裂口甩出去，像一片黑色飛刃'],['吞噬','把怪物的半邊身體吞進虛空，讓牠窒息']],
-    traits:['產生黑色虛空，內部漆黑無底，無聲無光','裂口大小因人而異，初期約掌心大','只能放無生命的物體，活物會窒息','最不穩定，情緒激動時虛空可能會失控打開'],
-    side:'使用時身體冒冷氣，平時體溫偏低'},
-  moon:{name:'殘月',glyph:'殘',rare:true,color:'#e8eefc',
-    tagline:'守夜的人',
-    desc:'你習慣照顧別人，夜越深越清醒。你還記得裂縫降臨前的月亮，也願意替大家把那一點光留下來。',
-    moment:'有人在你懷裡流血。你只想讓血停下來。',
-    base:['發光照明','發出銀白冷光，像裂縫降臨前的月光'],
-    pool:[['解毒','解除毒素'],['治療','讓傷口癒合'],['灼光','光照灼傷怪物的異變組織'],['安眠','月光籠罩目標，讓牠沉沉睡去'],['光盾','銀光凝成護盾，擋下攻擊'],['月光箭','射出銀白光箭，專傷異變組織'],['銀月刃','月光凝成一把彎刃']],
-    traits:['銀白色冷光，像裂縫降臨前的月光','光照可以灼傷怪物的異變組織','治癒技能練到最強依然生命不可逆','夜晚效果較強'],
-    side:'白天易疲勞，夜晚精神好'},
-  feral:{name:'異化',glyph:'異',rare:true,color:'#e0466e',
-    tagline:'比怪物更懂怪物',
-    desc:'你靠本能活下來。餓了就吃，痛了就咬回去，身體永遠比腦子先動。有些人怕你，但沒有人想跟你為敵。',
-    moment:'牠咬住你的那一刻，你也長出了牙。',
-    base:['局部異變','身體一到兩處異變，可以隨意收放'],
-    pool:[['長出爪牙','長出利爪與尖牙'],['強化五感','視覺、聽覺、嗅覺大幅提升'],['力量暴增','短時間內力氣暴漲'],['快速癒合','傷口癒合得比常人快'],['鱗甲','皮膚長出鱗片，擋下刀刃與爪擊'],['骨刺','背部竄出骨刺，刺穿貼身的敵人'],['毒牙','咬擊帶毒，讓目標麻木'],['撕裂','異變的肢體直接撕開目標']],
-    traits:['只有身體局部異變，不會整個獸化','異變部位因人而異，手臂、腿、眼或背，每人固定一到兩處','特徵近似覺醒時接觸過的怪物，例如鱗片、利爪、豎瞳','可以隨意收放，解除後恢復原狀'],
-    side:'食量變大，容易餓'}
+  metal:{name:tr('金'),glyph:'金',rare:false,color:'#aeb9c6',
+    tagline:tr('說好要守的，就守到最後'),
+    desc:tr('你相信能握在手裡的東西。答應過的事你不會反悔，想要的你會一錘一錘打出來。聚落裡最靠得住的那面牆，常常就是你。'),
+    moment:tr('握住鐵管的那一刻，你摸得到金屬裡的紋路。'),
+    base:[tr('控金'),tr('凝出金屬或操控身邊的金屬，熟練可以改變形狀與硬度')],
+    pool:[[tr('硬化'), tr('讓皮膚或武器硬得像鋼鐵')], [tr('鍛造'), tr('不用爐火，直接把金屬捏成工具')], [tr('鉤索'), tr('把金屬拉成長鉤，盪到高處')], [tr('金屬刃'), tr('把手邊的金屬拉成一把利刃')], [tr('迴旋刃'), tr('甩出一片圓刃，會繞回手中')], [tr('鐵盾'), tr('金屬在身前展開成盾，擋下撲擊')], [tr('鐵刺'), tr('從地面或金屬表面刺出尖銳鐵刺')], [tr('磁吸'), tr('把附近的金屬吸到手邊')], [tr('鋼針'), tr('射出細長鋼針，專刺甲殼的縫隙')], [tr('金屬鞭'), tr('把金屬拉成長鞭，能抽打也能纏住')]]},
+  water:{name:tr('水'),glyph:'水',rare:false,color:'#5aaae6',
+    tagline:tr('最冷靜的那一個'),
+    desc:tr('你很少慌。別人吵成一團的時候，你已經在想下一步。你能包容很多事，可是被逼到底線，你會冷得像結了冰。'),
+    moment:tr('渴到快撐不住的那天，你的掌心滲出了乾淨的水。'),
+    base:[tr('控水'),tr('凝出水或操控身邊的水，熟練可以改變形態與溫度')],
+    pool:[[tr('淨水'), tr('讓髒水變得能喝')], [tr('凍結'), tr('讓水或敵人的腳瞬間結冰')], [tr('水刃'), tr('把水壓成細流，切開皮肉')], [tr('冰牆'), tr('立起一道冰牆擋住攻擊')], [tr('霧氣'), tr('放出濃霧，遮住敵人的視線')], [tr('冰行'), tr('腳下凝出冰面，滑行前進，經過的地方留下一道冰')], [tr('水牢'), tr('把敵人困在一團水球裡')]]},
+  fire:{name:tr('火'),glyph:'火',rare:false,color:'#f26d3d',
+    tagline:tr('先衝再說'),
+    desc:tr('你的情緒來得快，去得也快。你會第一個衝出去，也會第一個把凍僵的人拉到火邊。末日裡，總要有人把火點起來。'),
+    moment:tr('那晚很冷，你只是想讓身邊的人暖一點。'),
+    base:[tr('控火'),tr('生出火或操控身邊的火，可以改變燃點與方向')],
+    pool:[[tr('點燃'), tr('讓碰到的東西起火')], [tr('加熱'), tr('讓物體升溫，能把鐵燒到發紅')], [tr('火球'), tr('擲出火球，撞上時炸開')], [tr('火牆'), tr('在地上燃起一道火牆，擋住去路')], [tr('附火'), tr('讓武器纏上火焰')], [tr('爆焰'), tr('在近距離引爆一團烈火')], [tr('火蛇'), tr('火焰化成蛇形，追著目標咬')], [tr('燎原'), tr('火沿著地面一路蔓延，燒向目標')], [tr('火種'), tr('留下一點火星，敵人靠近時炸開')]]},
+  lightning:{name:tr('雷'),glyph:'雷',rare:false,color:'#f0d44c',
+    tagline:tr('腦子轉得比誰都快'),
+    desc:tr('你一眼就看得出哪裡不對勁，手比嘴還快。舊時代的機器到你手上會重新動起來，怪物撲過來時，你也總是最先反應的那個。'),
+    moment:tr('指尖碰到斷掉的電線，整間屋子的燈亮了。'),
+    base:[tr('控雷'),tr('在指間生出電流，或操控身邊的電，改變它的去向')],
+    pool:[[tr('麻痺'), tr('電流讓目標短暫動彈不得')], [tr('供電'), tr('替舊時代的機器重新通電')], [tr('電擊'), tr('觸碰的瞬間放出強電')], [tr('雷鞭'), tr('把雷電拉成長鞭抽打')], [tr('閃光'), tr('爆出強光，讓敵人短暫失明')], [tr('落雷'), tr('在小範圍內落下一道雷擊')], [tr('雷槍'), tr('雷電凝成長槍，擲出貫穿')], [tr('連鎖'), tr('電流在相鄰的敵人之間跳躍')], [tr('電療'), tr('微弱電流讓痠痛與麻木退去')]]},
+  earth:{name:tr('地'),glyph:'地',rare:false,color:'#b9925a',
+    tagline:tr('把荒地守成家的人'),
+    desc:tr('你不急。你會挑一塊地，蓋牆、開田、種下麵根，一年一年把它守成家。身邊的人來來去去，你一直都在。'),
+    moment:tr('獸潮那一夜，你跪在泥裡，牆從你腳下長了出來。'),
+    base:[tr('控土'),tr('凝出土石或操控身邊的土石，讓它隆起、塌陷、移動')],
+    pool:[[tr('築牆'), tr('從地面立起一道土牆')], [tr('耕地'), tr('一揮手，翻鬆整片田')], [tr('催生植物'), tr('讓植物在幾息之間長大')], [tr('地刺'), tr('腳下的地面竄出石刺')], [tr('流沙'), tr('讓敵人腳下的地面變成流沙')], [tr('石膚'), tr('皮膚覆上一層岩石，抵擋攻擊')], [tr('岩槍'), tr('岩石凝成長槍，擲向目標')], [tr('震地'), tr('重重一踏，震倒周圍的敵人')], [tr('荊棘纏繞'), tr('催生荊棘，把敵人纏住')]]},
+  wind:{name:tr('風'),glyph:'風',rare:false,color:'#74d6b0',
+    tagline:tr('停不下來'),
+    desc:tr('你最討厭被困住。地圖上空白的地方你都想去看看，探路、送信、獨自上路，你總是走得最遠。想找你，得先追得上你。'),
+    moment:tr('被怪物逼到懸崖邊，你跳了下去，風接住了你。'),
+    base:[tr('控風'),tr('生出氣流或操控身邊的風，讓風聽你的')],
+    pool:[[tr('加速'), tr('風推著你，跑得比誰都快')], [tr('風刃'), tr('射出看不見的風刃')], [tr('風壓'), tr('強風把敵人壓倒或推開')], [tr('捲風'), tr('在小範圍內捲起旋風')], [tr('風槍'), tr('壓縮空氣，射出能貫穿的一擊')], [tr('氣爆'), tr('壓縮空氣後瞬間炸開')], [tr('風鎧'), tr('身邊纏著氣流，偏開飛來的攻擊')], [tr('順風'), tr('讓同伴的腳步也跟著輕快起來')], [tr('浮空'), tr('風托住身體，從高處落下也不會受傷')]]},
+  void:{name:tr('虛空'),glyph:'虛',rare:true,color:'#9c86e6',glyphFill:'#08070d',core:'#06050b',
+    tagline:tr('心裡有個沒有底的地方'),
+    desc:tr('你習慣把東西收起來，包括情緒。平常看不出來，可一旦被逼到極限，連你自己都控制不住。'),
+    moment:tr('你一直在忍。直到那一刻，眼前的空氣裂開了。'),
+    base:[tr('開裂口'),tr('在身邊撕開一道黑色裂口，初期約掌心大')],
+    pool:[[tr('收納'),tr('把無生命的物體收進虛空，活物放進去會窒息')],[tr('切割'),tr('用裂口邊緣切開甲殼與金屬')],[tr('吞擊'),tr('在身前打開虛空，把飛來的攻擊吞進去')],[tr('射出'),tr('把收著的東西從虛空高速射出')],[tr('陷阱'),tr('在敵人腳下打開虛空，讓牠一腳踩空')],[tr('飛刃'),tr('把裂口甩出去，像一片黑色飛刃')],[tr('吞噬'),tr('把怪物的半邊身體吞進虛空，讓牠窒息')]],
+    traits:[tr('產生黑色虛空，內部漆黑無底，無聲無光'),tr('裂口大小因人而異，初期約掌心大'),tr('只能放無生命的物體，活物會窒息'),tr('最不穩定，情緒激動時虛空可能會失控打開')],
+    side:tr('使用時身體冒冷氣，平時體溫偏低')},
+  moon:{name:tr('殘月'),glyph:'殘',rare:true,color:'#e8eefc',
+    tagline:tr('守夜的人'),
+    desc:tr('你習慣照顧別人，夜越深越清醒。你還記得裂縫降臨前的月亮，也願意替大家把那一點光留下來。'),
+    moment:tr('有人在你懷裡流血。你只想讓血停下來。'),
+    base:[tr('發光照明'),tr('發出銀白冷光，像裂縫降臨前的月光')],
+    pool:[[tr('解毒'),tr('解除毒素')],[tr('治療'),tr('讓傷口癒合')],[tr('灼光'),tr('光照灼傷怪物的異變組織')],[tr('安眠'),tr('月光籠罩目標，讓牠沉沉睡去')],[tr('光盾'),tr('銀光凝成護盾，擋下攻擊')],[tr('月光箭'),tr('射出銀白光箭，專傷異變組織')],[tr('銀月刃'),tr('月光凝成一把彎刃')]],
+    traits:[tr('銀白色冷光，像裂縫降臨前的月光'),tr('光照可以灼傷怪物的異變組織'),tr('治癒技能練到最強依然生命不可逆'),tr('夜晚效果較強')],
+    side:tr('白天易疲勞，夜晚精神好')},
+  feral:{name:tr('異化'),glyph:'異',rare:true,color:'#e0466e',
+    tagline:tr('比怪物更懂怪物'),
+    desc:tr('你靠本能活下來。餓了就吃，痛了就咬回去，身體永遠比腦子先動。有些人怕你，但沒有人想跟你為敵。'),
+    moment:tr('牠咬住你的那一刻，你也長出了牙。'),
+    base:[tr('局部異變'),tr('身體一到兩處異變，可以隨意收放')],
+    pool:[[tr('長出爪牙'),tr('長出利爪與尖牙')],[tr('強化五感'),tr('視覺、聽覺、嗅覺大幅提升')],[tr('力量暴增'),tr('短時間內力氣暴漲')],[tr('快速癒合'),tr('傷口癒合得比常人快')],[tr('鱗甲'),tr('皮膚長出鱗片，擋下刀刃與爪擊')],[tr('骨刺'),tr('背部竄出骨刺，刺穿貼身的敵人')],[tr('毒牙'),tr('咬擊帶毒，讓目標麻木')],[tr('撕裂'),tr('異變的肢體直接撕開目標')]],
+    traits:[tr('只有身體局部異變，不會整個獸化'),tr('異變部位因人而異，手臂、腿、眼或背，每人固定一到兩處'),tr('特徵近似覺醒時接觸過的怪物，例如鱗片、利爪、豎瞳'),tr('可以隨意收放，解除後恢復原狀')],
+    side:tr('食量變大，容易餓')}
 };
 /* 每個選項：[文字, 主元素碼+副元素碼]，主 +2、副 +1。九種元素各當 6 次主、6 次副，每題同一元素只出現一次，機率相同。
    M金 W水 F火 T雷 E地 A風 V虛空 L殘月 X異化 */
 const K={M:'metal',W:'water',F:'fire',T:'lightning',E:'earth',A:'wind',V:'void',L:'moon',X:'feral'};
 const QS=[
-  {s:['床頭燈還亮著。','這本《裂空的伊爾卡》你追了好幾個晚上，書頁邊角被你折得捲了起來。','你折起來的，多半是哪幾頁？'],o:[
-    ['主角一刀劈開怪物甲殼的那幾頁，讀得你手心發燙','FM'],
-    ['聚落從一片荒地，一磚一瓦蓋起來的那幾頁','EW'],
-    ['雙胞胎在小屋裡拌嘴，搶最後一塊餅的那幾頁','LX'],
-    ['有人提起裂縫的另一頭是什麼，話卻總說到一半的那幾頁','VA']]},
-  {s:['你闔上書，關了燈。','睡著以後，你一直往下墜。沒有風，沒有聲音，黑暗稠得像水，一點一點漫過你的口鼻。'],o:[
-    ['你拚命伸手去抓，卻什麼都抓不到。','XF'],
-    ['你不掙扎，等自己落到底。','WV'],
-    ['你抬起頭。很遠很遠的上方，有一道細細的光。','LA']]},
-  {s:['醒來的時候，你先聞到木頭和煙燻的味道。','屋頂很低，被子很重，枕頭上留著別人的氣味……這不是你的房間。'],o:[
-    ['你沒睜眼，屏住呼吸，聽屋子裡還有沒有別人。','TX'],
-    ['你掀開被子，赤腳踩上冰涼的木地板，先找門在哪裡。','AE'],
-    ['你的手在枕頭底下摸到一把短刀。你握住它，沒有出聲。','MW']]},
-  {s:['「讀者大大，早安呀～」一個聲音直接在你腦子裡響起。','下一秒，一片半透明的面板浮到眼前，邊角閃著微光。','你看向什麼，就會得到什麼的資料。','你最先看的是：'],o:[
-    ['讀者資料。至少得先弄清楚，讀者是誰。','WV'],
-    ['掛在牆上的那把刀，刀口磨得發亮。','MX'],
-    ['窗戶，夜風從那裡鑽進來，帶著你從沒聞過的味道。','AL'],
-    ['門，地板在震動，有腳步聲一步一步靠近。','TE']]},
-  {s:['門被推開了。','兩個男人一前一後走進來，個子高得要低頭才不會撞上門框。','他們長得一模一樣，打量你的眼神卻不一樣。'],o:[
-    ['你攥著被角，先開口：「這裡是哪裡？」','WE'],
-    ['你沒說話，在兩張臉之間來回地看，想找出哪裡不一樣。','TV'],
-    ['「謝謝你們。」不管怎樣，是他們讓你睡在這裡的。','LF'],
-    ['你先看了一眼他們腰間的刀，再看一眼離你最近的那扇窗。','AX']]},
-  {s:['「你叫什麼？從哪裡來？」','其中一個拉了張椅子，反著跨坐上去，下巴擱在椅背上看你。','另一個靠在門邊沒動，手一直沒離開刀柄。'],o:[
-    ['「我從另一個世界來的。」話一出口，你就後悔了。','FM'],
-    ['你只報了名字，其他的一個字也沒多說。','VT'],
-    ['「我不記得了。」你低聲說，「如果可以，能讓我在這裡待一陣子嗎？」','EL']]},
-  {s:['他們說，是在森林裡把你撿回來的。那時你倒在樹底下，怎麼叫都叫不醒。','你走到窗邊，推開窗。天上沒有月亮，只有一道裂縫橫在夜空裡。','和書裡寫的一模一樣。'],o:[
-    ['你看了很久，看到眼睛發酸，還是捨不得移開。','LW'],
-    ['你回過頭問他們，今年是裂縫降臨的第幾年。','TE'],
-    ['你忽然笑出聲來。都穿進書裡了，總得好好活一次。','FA'],
-    ['你把窗關上，背靠著牆，慢慢蹲了下去。','VM']]},
-  {s:['天亮以後，桌上擺了兩樣東西：一疊烤得金黃的麵根餅和一盤烤肉。','「怪物肉。」其中一個說，「異變的地方切掉了，能吃。」'],o:[
-    ['你等他們各吃了一口，才拿起自己那份。','TW'],
-    ['你問這是什麼怪物、在哪裡打到的，問到他們都笑了。','AL'],
-    ['你拿起一塊餅慢慢地嚼。很粗，很乾，卻是你吃過最實在的一頓。','EM']]},
-  {s:['他們要進森林打獵，你說你也要去。','走到林子深處，草叢猛地一晃，一頭背上長滿骨刺的野狼撲了出來，直直衝著你。','你手裡卻什麼都沒有。'],o:[
-    ['你抄起腳邊的粗樹枝，朝牠的眼睛捅過去。','XM'],
-    ['你轉身就往他們兩個的方向跑。','AL'],
-    ['你站著沒動，盯著牠，等牠先露出破綻。','WT'],
-    ['你抓起一把泥沙，狠狠丟在牠臉上。','EF']]},
-  {s:['回程時，你們繞去邊境聚落，拿獵物的皮和骨頭換結晶。','攤位前擠滿了人。你看見一個瘦得只剩骨頭的孩子，把手伸進了旁人的布袋。'],o:[
-    ['你想都沒想，一把扣住那隻手。','XM'],
-    ['你走過去，替他把東西塞回布袋，順勢擋在他身前。','EL'],
-    ['你什麼都沒說，只記下他往哪條巷子跑。','TV'],
-    ['你把剛換到的那顆灰結晶，悄悄塞進他手裡。','WF']]},
-  {s:['離開前，探索者協會的布告欄貼出一張新委託：東邊山谷冒出了一座裂隙。','「讀者大大～這座裂隙不大，很適合新手喔！」系統在你腦子裡說得很開心。','他們看完委託，決定去一趟。','其中一個回頭看你：「你要跟？」'],o:[
-    ['「要。」你答得比腦子還快。','FA'],
-    ['「我可以幫你們背東西、守行李。」','EW'],
-    ['「我看得到你們看不到的東西。」你沒說是什麼。','VT'],
-    ['你沒回答，從他們的行李裡抽出一把短刀，綁上自己的腰。','MX']]},
-  {s:['裂隙裡的怪物比森林裡兇，你們一路打一路退，最後被逼進一處岔口。','「你選。」其中一個喘著氣說。'],o:[
-    ['左邊。石壁上長滿光苔，綠瑩瑩地一路亮進深處。','LE'],
-    ['右邊。裡面傳來低沉的喘息聲，像有什麼東西在睡。','XF'],
-    ['中間。一片漆黑，冷風從裡面一陣一陣地吹出來。','VA']]},
-  {s:['通道盡頭是一座圓形的石廳。','首領從暗處站起來，比你見過的任何怪物都大，甲殼上滿是舊傷。','他們一左一右擋在你前面，頭也沒回：「待在後面。」'],o:[
-    ['你沒有待在後面。','XF'],
-    ['你繞著牆跑，引牠轉頭，替他們騰出空檔。','AT'],
-    ['你撿起地上的短刀，朝牠胸口那道舊傷擲過去。','ME'],
-    ['你退到牆邊，把他們丟下的背包抱在懷裡，替他們守著。','LV']]},
-  {s:['首領倒下以後，石廳裡只剩下你們的喘氣聲。','廳中央有一座石台，上面放著四樣東西。他們讓你挑。','「讀者大大，只能拿一件喔，拿了這裡就會塌～」系統小小聲地說。'],o:[
-    ['一盞提燈。燈芯燒著，像是從來沒有熄過。','FL'],
-    ['一枚貝殼。貼在耳邊，能聽見很遠很遠的地方。','XA'],
-    ['一個布袋。不管往裡面放多少東西，都裝不滿。','VW'],
-    ['一把刀。刃口沒有半點缺口，像是永遠不會鈍。','MT']]},
-  {s:['你的指尖碰到它的那一刻，石廳開始崩塌。','碎石從頭頂砸下來，有人抓住你的手臂往外拖。','你抬起頭，從崩開的岩縫裡，看見了那道裂縫。','它的光落在你身上。那一瞬間，你感覺到……'],o:[
-    ['冷。從骨頭裡往外透的冷，冷得你說不出話。','WV'],
-    ['燙。有什麼從心口燒起來，一路燒到指尖。','FT'],
-    ['重。全身的骨頭，像是變成了鐵。','MX']]}
+  {s:[tr('床頭燈還亮著。'),tr('這本《裂空的伊爾卡》你追了好幾個晚上，書頁邊角被你折得捲了起來。'),tr('你折起來的，多半是哪幾頁？')],o:[
+    [tr('主角一刀劈開怪物甲殼的那幾頁，讀得你手心發燙'),'FM'],
+    [tr('聚落從一片荒地，一磚一瓦蓋起來的那幾頁'),'EW'],
+    [tr('雙胞胎在小屋裡拌嘴，搶最後一塊餅的那幾頁'),'LX'],
+    [tr('有人提起裂縫的另一頭是什麼，話卻總說到一半的那幾頁'),'VA']]},
+  {s:[tr('你闔上書，關了燈。'),tr('睡著以後，你一直往下墜。沒有風，沒有聲音，黑暗稠得像水，一點一點漫過你的口鼻。')],o:[
+    [tr('你拚命伸手去抓，卻什麼都抓不到。'),'XF'],
+    [tr('你不掙扎，等自己落到底。'),'WV'],
+    [tr('你抬起頭。很遠很遠的上方，有一道細細的光。'),'LA']]},
+  {s:[tr('醒來的時候，你先聞到木頭和煙燻的味道。'),tr('屋頂很低，被子很重，枕頭上留著別人的氣味……這不是你的房間。')],o:[
+    [tr('你沒睜眼，屏住呼吸，聽屋子裡還有沒有別人。'),'TX'],
+    [tr('你掀開被子，赤腳踩上冰涼的木地板，先找門在哪裡。'),'AE'],
+    [tr('你的手在枕頭底下摸到一把短刀。你握住它，沒有出聲。'),'MW']]},
+  {s:[tr('「讀者大大，早安呀～」一個聲音直接在你腦子裡響起。'),tr('下一秒，一片半透明的面板浮到眼前，邊角閃著微光。'),tr('你看向什麼，就會得到什麼的資料。'),tr('你最先看的是：')],o:[
+    [tr('讀者資料。至少得先弄清楚，讀者是誰。'),'WV'],
+    [tr('掛在牆上的那把刀，刀口磨得發亮。'),'MX'],
+    [tr('窗戶，夜風從那裡鑽進來，帶著你從沒聞過的味道。'),'AL'],
+    [tr('門，地板在震動，有腳步聲一步一步靠近。'),'TE']]},
+  {s:[tr('門被推開了。'),tr('兩個男人一前一後走進來，個子高得要低頭才不會撞上門框。'),tr('他們長得一模一樣，打量你的眼神卻不一樣。')],o:[
+    [tr('你攥著被角，先開口：「這裡是哪裡？」'),'WE'],
+    [tr('你沒說話，在兩張臉之間來回地看，想找出哪裡不一樣。'),'TV'],
+    [tr('「謝謝你們。」不管怎樣，是他們讓你睡在這裡的。'),'LF'],
+    [tr('你先看了一眼他們腰間的刀，再看一眼離你最近的那扇窗。'),'AX']]},
+  {s:[tr('「你叫什麼？從哪裡來？」'),tr('其中一個拉了張椅子，反著跨坐上去，下巴擱在椅背上看你。'),tr('另一個靠在門邊沒動，手一直沒離開刀柄。')],o:[
+    [tr('「我從另一個世界來的。」話一出口，你就後悔了。'),'FM'],
+    [tr('你只報了名字，其他的一個字也沒多說。'),'VT'],
+    [tr('「我不記得了。」你低聲說，「如果可以，能讓我在這裡待一陣子嗎？」'),'EL']]},
+  {s:[tr('他們說，是在森林裡把你撿回來的。那時你倒在樹底下，怎麼叫都叫不醒。'),tr('你走到窗邊，推開窗。天上沒有月亮，只有一道裂縫橫在夜空裡。'),tr('和書裡寫的一模一樣。')],o:[
+    [tr('你看了很久，看到眼睛發酸，還是捨不得移開。'),'LW'],
+    [tr('你回過頭問他們，今年是裂縫降臨的第幾年。'),'TE'],
+    [tr('你忽然笑出聲來。都穿進書裡了，總得好好活一次。'),'FA'],
+    [tr('你把窗關上，背靠著牆，慢慢蹲了下去。'),'VM']]},
+  {s:[tr('天亮以後，桌上擺了兩樣東西：一疊烤得金黃的麵根餅和一盤烤肉。'),tr('「怪物肉。」其中一個說，「異變的地方切掉了，能吃。」')],o:[
+    [tr('你等他們各吃了一口，才拿起自己那份。'),'TW'],
+    [tr('你問這是什麼怪物、在哪裡打到的，問到他們都笑了。'),'AL'],
+    [tr('你拿起一塊餅慢慢地嚼。很粗，很乾，卻是你吃過最實在的一頓。'),'EM']]},
+  {s:[tr('他們要進森林打獵，你說你也要去。'),tr('走到林子深處，草叢猛地一晃，一頭背上長滿骨刺的野狼撲了出來，直直衝著你。'),tr('你手裡卻什麼都沒有。')],o:[
+    [tr('你抄起腳邊的粗樹枝，朝牠的眼睛捅過去。'),'XM'],
+    [tr('你轉身就往他們兩個的方向跑。'),'AL'],
+    [tr('你站著沒動，盯著牠，等牠先露出破綻。'),'WT'],
+    [tr('你抓起一把泥沙，狠狠丟在牠臉上。'),'EF']]},
+  {s:[tr('回程時，你們繞去邊境聚落，拿獵物的皮和骨頭換結晶。'),tr('攤位前擠滿了人。你看見一個瘦得只剩骨頭的孩子，把手伸進了旁人的布袋。')],o:[
+    [tr('你想都沒想，一把扣住那隻手。'),'XM'],
+    [tr('你走過去，替他把東西塞回布袋，順勢擋在他身前。'),'EL'],
+    [tr('你什麼都沒說，只記下他往哪條巷子跑。'),'TV'],
+    [tr('你把剛換到的那顆灰結晶，悄悄塞進他手裡。'),'WF']]},
+  {s:[tr('離開前，探索者協會的布告欄貼出一張新委託：東邊山谷冒出了一座裂隙。'),tr('「讀者大大～這座裂隙不大，很適合新手喔！」系統在你腦子裡說得很開心。'),tr('他們看完委託，決定去一趟。'),tr('其中一個回頭看你：「你要跟？」')],o:[
+    [tr('「要。」你答得比腦子還快。'),'FA'],
+    [tr('「我可以幫你們背東西、守行李。」'),'EW'],
+    [tr('「我看得到你們看不到的東西。」你沒說是什麼。'),'VT'],
+    [tr('你沒回答，從他們的行李裡抽出一把短刀，綁上自己的腰。'),'MX']]},
+  {s:[tr('裂隙裡的怪物比森林裡兇，你們一路打一路退，最後被逼進一處岔口。'),tr('「你選。」其中一個喘著氣說。')],o:[
+    [tr('左邊。石壁上長滿光苔，綠瑩瑩地一路亮進深處。'),'LE'],
+    [tr('右邊。裡面傳來低沉的喘息聲，像有什麼東西在睡。'),'XF'],
+    [tr('中間。一片漆黑，冷風從裡面一陣一陣地吹出來。'),'VA']]},
+  {s:[tr('通道盡頭是一座圓形的石廳。'),tr('首領從暗處站起來，比你見過的任何怪物都大，甲殼上滿是舊傷。'),tr('他們一左一右擋在你前面，頭也沒回：「待在後面。」')],o:[
+    [tr('你沒有待在後面。'),'XF'],
+    [tr('你繞著牆跑，引牠轉頭，替他們騰出空檔。'),'AT'],
+    [tr('你撿起地上的短刀，朝牠胸口那道舊傷擲過去。'),'ME'],
+    [tr('你退到牆邊，把他們丟下的背包抱在懷裡，替他們守著。'),'LV']]},
+  {s:[tr('首領倒下以後，石廳裡只剩下你們的喘氣聲。'),tr('廳中央有一座石台，上面放著四樣東西。他們讓你挑。'),tr('「讀者大大，只能拿一件喔，拿了這裡就會塌～」系統小小聲地說。')],o:[
+    [tr('一盞提燈。燈芯燒著，像是從來沒有熄過。'),'FL'],
+    [tr('一枚貝殼。貼在耳邊，能聽見很遠很遠的地方。'),'XA'],
+    [tr('一個布袋。不管往裡面放多少東西，都裝不滿。'),'VW'],
+    [tr('一把刀。刃口沒有半點缺口，像是永遠不會鈍。'),'MT']]},
+  {s:[tr('你的指尖碰到它的那一刻，石廳開始崩塌。'),tr('碎石從頭頂砸下來，有人抓住你的手臂往外拖。'),tr('你抬起頭，從崩開的岩縫裡，看見了那道裂縫。'),tr('它的光落在你身上。那一瞬間，你感覺到……')],o:[
+    [tr('冷。從骨頭裡往外透的冷，冷得你說不出話。'),'WV'],
+    [tr('燙。有什麼從心口燒起來，一路燒到指尖。'),'FT'],
+    [tr('重。全身的骨頭，像是變成了鐵。'),'MX']]}
 ];
 QS.forEach(q=>{q.o=q.o.map(([t,c])=>[t,K[c[0]],K[c[1]]])});
+QS[3].system=[0];QS[10].system=[1];QS[13].system=[2];
 function score(picks){
   const s={};ORDER.forEach(k=>{s[k]=0});
   picks.forEach(o=>{s[o[1]]+=2;s[o[2]]+=1});
@@ -487,8 +506,9 @@ function drawSkills(k,n,rand){
   const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const root=document.documentElement;
   const DEFAULT_RIFT='#d9d3ff', DEFAULT_CORE='#fbfaff';
-  const F_DISPLAY='"Chiron Sung HK","Noto Serif TC","Songti TC","PMingLiU",serif';
-  const F_BODY='"Chiron Hei HK","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  const F_DISPLAY=I18N.fonts.display;
+  const F_GLYPH='"Chiron Sung HK","Noto Serif TC",serif';
+  const F_BODY=I18N.fonts.body;
 
   /* ---------- rift geometry, shared by sky and result card ---------- */
   function hex(h){h=h.replace('#','');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]}
@@ -646,7 +666,7 @@ function drawSkills(k,n,rand){
   }
   function sysBox(text,delay){
     const b=mk('div','sysbox pop'),say=mk('div','say');
-    b.append(mk('div','who','系統'),say);typeInto(say,text,(delay||0)+300);return b;
+    b.append(mk('div','who',tr('系統')),say);typeInto(say,text,(delay||0)+300);return b;
   }
   function renderQ(){
     const q=QS[idx];
@@ -655,7 +675,7 @@ function drawSkills(k,n,rand){
     stopTyping();
     const sc=$('qtext');sc.textContent='';let delay=0;
     q.s.forEach((l,i)=>{
-      const last=i===q.s.length-1,m=l.match(/^「(讀者大大[^」]*)」(.*)$/);
+      const last=i===q.s.length-1,m=(q.system||[]).includes(i)&&l.match(/^[「“"]([^」”"]*)[」”"](.*)$/);
       if(m){sc.appendChild(sysBox(m[1],delay));delay+=m[1].length*45+200;if(m[2])sc.appendChild(mk('p',last?'last':'',m[2]))}
       else sc.appendChild(mk('p',last?'last':'',l));
     });
@@ -695,7 +715,7 @@ function drawSkills(k,n,rand){
     g.style.setProperty('--gc',e.color);g.style.setProperty('--gf',e.glyphFill||e.color);
     return g;
   }
-  function tagEl(e){return mk('span','tag'+(e.rare?' rare':''),e.rare?'稀有元素':'常見元素')}
+  function tagEl(e){return mk('span','tag'+(e.rare?' rare':''),e.rare?tr('稀有元素'):tr('常見元素'))}
   function section(k,skills,withHead){
     const e=EL[k],sec=mk('div','el-sec');
     sec.style.setProperty('--gc',e.color);
@@ -706,16 +726,16 @@ function drawSkills(k,n,rand){
       sec.appendChild(h);
     }
     sec.appendChild(mk('p','desc',e.desc));
-    const ab=mk('div','block');ab.appendChild(mk('h3',null,'能力'));
+    const ab=mk('div','block');ab.appendChild(mk('h3',null,tr('能力')));
     const ul=mk('ul','skill-list');
     const add=(sk,cls)=>{const li=mk('li',cls);li.append(mk('span','sk-name',sk[0]),mk('span','sk-desc',sk[1]));ul.appendChild(li)};
-    ul.appendChild(mk('li','sk-sep','基本能力'));
+    ul.appendChild(mk('li','sk-sep',tr('基本能力')));
     add(e.base,'sk-base');
-    ul.appendChild(mk('li','sk-sep','初始技能'));
+    ul.appendChild(mk('li','sk-sep',tr('初始技能')));
     skills.forEach(sk=>add(sk,''));
     ab.appendChild(ul);sec.appendChild(ab);
-    if(e.traits){const b=mk('div','block');b.appendChild(mk('h3',null,'特性'));const t=mk('ul','traits');e.traits.forEach(x=>t.appendChild(mk('li',null,x)));b.appendChild(t);sec.appendChild(b)}
-    if(e.side){const b=mk('div','block');b.append(mk('h3',null,'副作用'),mk('p',null,e.side));sec.appendChild(b)}
+    if(e.traits){const b=mk('div','block');b.appendChild(mk('h3',null,tr('特性')));const t=mk('ul','traits');e.traits.forEach(x=>t.appendChild(mk('li',null,x)));b.appendChild(t);sec.appendChild(b)}
+    if(e.side){const b=mk('div','block');b.append(mk('h3',null,tr('副作用')),mk('p',null,e.side));sec.appendChild(b)}
     return sec;
   }
   function renderResult(an){
@@ -727,23 +747,23 @@ function drawSkills(k,n,rand){
     const tag=$('rTag');
     if(an.dual){
       $('rName').textContent=A.name+' × '+B.name;
-      tag.textContent='雙元素覺醒';tag.className='tag rare';
-      $('rTagline').textContent='兩種力量，同時在你體內醒來';
-      stopTyping();typeInto($('rMoment'),'哇！讀者大大一口氣覺醒了【'+A.name+'】和【'+B.name+'】兩種元素！這個世界可是很少人做得到的喔～',700);
+      tag.textContent=tr('雙元素覺醒');tag.className='tag rare';
+      $('rTagline').textContent=tr('兩種力量，同時在你體內醒來');
+      stopTyping();typeInto($('rMoment'),tr('哇！讀者大大一口氣覺醒了【{a}】和【{b}】兩種元素！這個世界可是很少人做得到的喔～',{a:A.name,b:B.name}),700);
     }else{
       $('rName').textContent=A.name;
-      tag.textContent=A.rare?'稀有元素':'常見元素';tag.className='tag'+(A.rare?' rare':'');
+      tag.textContent=A.rare?tr('稀有元素'):tr('常見元素');tag.className='tag'+(A.rare?' rare':'');
       $('rTagline').textContent=A.tagline;
-      stopTyping();typeInto($('rMoment'),'恭喜讀者大大覺醒【'+A.name+'】！'+(A.rare?'是稀有元素喔～':'好好鍛鍊，會很強的喔～'),700);
+      stopTyping();typeInto($('rMoment'),tr('恭喜讀者大大覺醒【{a}】！',{a:A.name})+(A.rare?tr('是稀有元素喔～'):tr('好好鍛鍊，會很強的喔～')),700);
     }
     const sec=$('rSecond');sec.textContent='';sec.hidden=an.dual;
     if(!an.dual){
       sec.style.setProperty('--gc',B.color);
-      const top=mk('div','second-top');top.append(mk('span','lbl','可能覺醒的第二元素'),mk('span','pct',an.pct+'%'));
+      const top=mk('div','second-top');top.append(mk('span','lbl',tr('可能覺醒的第二元素')),mk('span','pct',an.pct+'%'));
       const nm=mk('div','second-name');const d=mk('span','dot');d.style.setProperty('--c',B.color);
       nm.append(d,document.createTextNode(B.name),tagEl(B));
       const m=mk('div','meter');const bar=mk('i');bar.style.width=an.pct+'%';m.appendChild(bar);
-      sec.append(top,nm,m,mk('p','note','系統偷偷告訴你：多數人一生只有一種元素，讀者大大之後還有 '+an.pct+'% 機率覺醒【'+B.name+'】喔～'));
+      sec.append(top,nm,m,mk('p','note',tr('系統偷偷告訴你：多數人一生只有一種元素，你之後還有 {pct}% 機率覺醒【{b}】喔～',{pct:an.pct,b:B.name})));
     }
     const body=$('rBody');body.textContent='';
     body.appendChild(section(an.a,an.skillsA,an.dual));
@@ -760,9 +780,9 @@ function drawSkills(k,n,rand){
     });
     const nm=x=>x.map(k=>k[0]).join('・');
     if(an.dual){
-      shareText='我在裂縫下覺醒了【'+A.name+'×'+B.name+'】雙元素\n'+A.name+'：'+A.base[0]+'・'+nm(an.skillsA)+'\n'+B.name+'：'+B.base[0]+'・'+nm(an.skillsB)+'\n\n《裂空的伊爾卡》元素測驗';
+      shareText=tr('我在裂縫下覺醒了【{a} × {b}】雙元素',{a:A.name,b:B.name})+'\n'+A.name+'：'+A.base[0]+'・'+nm(an.skillsA)+'\n'+B.name+'：'+B.base[0]+'・'+nm(an.skillsB)+tr('\n\n《裂空的伊爾卡》元素測驗');
     }else{
-      shareText='我在裂縫下覺醒了【'+A.name+'】'+(A.rare?'（稀有元素）':'')+'\n'+A.tagline+'\n基本能力：'+A.base[0]+'\n初始技能：'+nm(an.skillsA)+'\n第二元素：'+B.name+'（'+an.pct+'%）\n\n《裂空的伊爾卡》元素測驗';
+      shareText=tr('我在裂縫下覺醒了【{a}】',{a:A.name})+(A.rare?tr('（稀有元素）'):'')+'\n'+A.tagline+tr('\n基本能力：')+A.base[0]+tr('\n初始技能：')+nm(an.skillsA)+tr('\n第二元素：')+B.name+'（'+an.pct+tr('%）\n\n《裂空的伊爾卡》元素測驗');
     }
     updateSheet();
   }
@@ -770,14 +790,21 @@ function drawSkills(k,n,rand){
   /* ---------- result long image ---------- */
   function wrapText(x,text,maxW){
     const out=[];let line='';
-    for(const ch of text){
+    const units=(I18N.language==='en'||I18N.language==='ko')?text.match(/\S+\s*|\s+/g)||[]:Array.from(text);
+    for(const unit of units){
+      if(x.measureText(unit.trim()).width>maxW){
+        if(line.trim())out.push(line.trimEnd());line='';
+        for(const ch of unit){if(line&&x.measureText(line+ch).width>maxW){out.push(line);line=''}line+=ch}
+        continue;
+      }
+      const ch=unit;
       const t=line+ch;
       if(line&&x.measureText(t).width>maxW){
         if('，。、！？：；」』…～）'.indexOf(ch)>=0){line=t;continue}
-        out.push(line);line=ch;
+        out.push(line.trimEnd());line=ch.trimStart();
       }else line=t;
     }
-    if(line)out.push(line);
+    if(line.trim())out.push(line.trimEnd());
     return out;
   }
   function wrapEven(x,text,maxW){
@@ -790,7 +817,7 @@ function drawSkills(k,n,rand){
   function rrect(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.lineTo(X+w-r,Y);x.quadraticCurveTo(X+w,Y,X+w,Y+r);x.lineTo(X+w,Y+h-r);x.quadraticCurveTo(X+w,Y+h,X+w-r,Y+h);x.lineTo(X+r,Y+h);x.quadraticCurveTo(X,Y+h,X,Y+h-r);x.lineTo(X,Y+r);x.quadraticCurveTo(X,Y,X+r,Y);x.closePath()}
   function layoutCard(x,an,CW,H){
     const A=EL[an.a],B=EL[an.b],L=90,IW=CW-L*2;
-    const sp=v=>{if('letterSpacing' in x)x.letterSpacing=v};
+    const sp=v=>{if('letterSpacing' in x)x.letterSpacing=I18N.language==='zh'?v:'0px'};
     const T={ink:'#ebe6dc',dim:'#a3a5b4',faint:'#6d728a',line:'#2a3149',gold:'#dcb76e',rift:'#d9d3ff'};
     if(H){
       x.fillStyle='#0a0c13';x.fillRect(0,0,CW,H);
@@ -802,24 +829,26 @@ function drawSkills(k,n,rand){
     }
     x.textAlign='center';x.textBaseline='alphabetic';
     x.font='500 30px '+F_BODY;x.fillStyle=T.dim;sp('10px');
-    x.fillText('【系統】覺醒判定完成',CW/2,440);sp('0px');
+    x.fillText(tr('【系統】覺醒判定完成'),CW/2,440);sp('0px');
     const glyph=(e,k,cx,size)=>{
-      x.font='900 '+size+'px '+F_DISPLAY;
+      x.font='900 '+size+'px '+F_GLYPH;
       x.save();x.shadowColor=e.color;x.shadowBlur=60;x.fillStyle=e.glyphFill||e.color;
       x.fillText(e.glyph,cx,690);x.shadowBlur=20;x.fillText(e.glyph,cx,690);x.restore();
       if(k==='void'){x.lineWidth=3;x.strokeStyle=e.color;x.strokeText(e.glyph,cx,690)}
     };
     if(an.dual){glyph(A,an.a,CW/2-115,200);glyph(B,an.b,CW/2+115,200)}else glyph(A,an.a,CW/2,230);
     x.font='900 78px '+F_DISPLAY;x.fillStyle=T.ink;sp('8px');
-    x.fillText(an.dual?A.name+' × '+B.name:A.name,CW/2,810);sp('0px');
-    const tagText=an.dual?'雙元素覺醒':(A.rare?'稀有元素':'常見元素'),rare=an.dual||A.rare;
+    x.fillText(an.dual?A.name+' × '+B.name:A.name,CW/2,810,IW);sp('0px');
+    const tagText=an.dual?tr('雙元素覺醒'):(A.rare?tr('稀有元素'):tr('常見元素')),rare=an.dual||A.rare;
     x.font='500 28px '+F_BODY;sp('6px');
     const tw=x.measureText(tagText).width+40;
     x.strokeStyle=rare?T.gold:'#3a4260';x.lineWidth=2;x.strokeRect(CW/2-tw/2,842,tw,50);
     x.fillStyle=rare?T.gold:T.dim;x.fillText(tagText,CW/2+3,877);sp('0px');
     x.font='500 38px '+F_BODY;x.fillStyle=T.ink;
-    x.fillText(an.dual?'兩種力量，同時在你體內醒來':A.tagline,CW/2,965);
-    let y=1030;
+    const tagline=an.dual?tr('兩種力量，同時在你體內醒來'):A.tagline;
+    const taglineLines=wrapText(x,tagline,IW);
+    taglineLines.forEach((line,i)=>x.fillText(line,CW/2,965+i*52));
+    let y=1030+(taglineLines.length-1)*52;
     x.textAlign='left';
 
     // system bubble
@@ -830,7 +859,7 @@ function drawSkills(k,n,rand){
     x.save();rrect(x,L,y,IW,bh,14);x.fillStyle='rgba(217,211,255,.08)';x.fill();
     x.shadowColor='rgba(217,211,255,.35)';x.shadowBlur=24;x.strokeStyle='rgba(217,211,255,.6)';x.lineWidth=2;x.stroke();x.restore();
     x.fillStyle=T.rift;x.beginPath();x.arc(L+30,y+44,6,0,6.283);x.fill();
-    x.font='500 24px '+F_BODY;sp('6px');x.fillText('系統',L+48,y+53);sp('0px');
+    x.font='500 24px '+F_BODY;sp('6px');x.fillText(tr('系統'),L+48,y+53);sp('0px');
     x.font='500 32px '+F_BODY;x.fillStyle='#ffffff';
     sl.forEach((l,i)=>x.fillText(l,L+24,y+110+i*50));
     y+=bh+40;
@@ -839,12 +868,12 @@ function drawSkills(k,n,rand){
     if(!an.dual){
       const bh2=200;
       rrect(x,L,y,IW,bh2,10);x.fillStyle='#121624';x.fill();x.strokeStyle=T.line;x.lineWidth=2;x.stroke();
-      x.font='500 26px '+F_BODY;x.fillStyle=T.dim;sp('6px');x.fillText('可能覺醒的第二元素',L+30,y+56);sp('0px');
+      x.font='500 26px '+F_BODY;x.fillStyle=T.dim;sp('6px');x.fillText(tr('可能覺醒的第二元素'),L+30,y+56);sp('0px');
       x.textAlign='right';x.font='500 48px '+F_BODY;x.fillStyle=B.color;x.fillText(an.pct+'%',L+IW-30,y+64);x.textAlign='left';
       x.fillStyle=B.color;x.beginPath();x.arc(L+40,y+112,8,0,6.283);x.fill();
       x.font='700 40px '+F_DISPLAY;x.fillStyle=T.ink;x.fillText(B.name,L+62,y+126);
       const nw=x.measureText(B.name).width;
-      x.font='500 22px '+F_BODY;sp('4px');const t2=B.rare?'稀有元素':'常見元素';const w2=x.measureText(t2).width+28;
+      x.font='500 22px '+F_BODY;sp('4px');const t2=B.rare?tr('稀有元素'):tr('常見元素');const w2=x.measureText(t2).width+28;
       x.strokeStyle=B.rare?T.gold:'#3a4260';x.strokeRect(L+82+nw,y+96,w2,38);x.fillStyle=B.rare?T.gold:T.dim;x.fillText(t2,L+96+nw,y+123);sp('0px');
       x.fillStyle='#1b2134';x.fillRect(L+30,y+156,IW-60,10);x.fillStyle=B.color;x.fillRect(L+30,y+156,(IW-60)*an.pct/100,10);
       y+=bh2+50;
@@ -858,12 +887,12 @@ function drawSkills(k,n,rand){
         y+=20;x.fillStyle=e.color;x.beginPath();x.arc(L+10,y+28,9,0,6.283);x.fill();
         x.font='900 48px '+F_DISPLAY;x.fillStyle=T.ink;x.fillText(e.name,L+34,y+46);
         const nw=x.measureText(e.name).width;
-        x.font='500 22px '+F_BODY;sp('4px');const t=e.rare?'稀有元素':'常見元素';const w=x.measureText(t).width+28;
+        x.font='500 22px '+F_BODY;sp('4px');const t=e.rare?tr('稀有元素'):tr('常見元素');const w=x.measureText(t).width+28;
         x.strokeStyle=e.rare?T.gold:'#3a4260';x.lineWidth=2;x.strokeRect(L+54+nw,y+14,w,38);x.fillStyle=e.rare?T.gold:T.dim;x.fillText(t,L+68+nw,y+41);sp('0px');
         y+=60;para(e.tagline,30,T.dim,46);y+=10;
       }
       para(e.desc,31,T.ink,52);y+=40;
-      heading('能力');
+      heading(tr('能力'));
       const sub=t=>{y+=30;x.font='500 22px '+F_BODY;x.fillStyle=T.faint;sp('8px');x.fillText(t,L,y);sp('0px');y+=14};
       const row=(sk,base)=>{
         x.font='500 30px '+F_BODY;const w=x.measureText(sk[0]).width+36;
@@ -871,16 +900,17 @@ function drawSkills(k,n,rand){
         if(base){x.fillStyle=rgb(hex(e.color),.18);x.fillRect(L,top,w,52)}
         x.strokeStyle=rgb(hex(e.color),.75);x.lineWidth=2;x.strokeRect(L,top,w,52);
         x.fillStyle=T.ink;x.fillText(sk[0],L+18,top+37);
-        const DX=L+250;x.font='400 28px '+F_BODY;x.fillStyle=T.dim;
-        const ls=wrapEven(x,sk[1],IW-250);
-        ls.forEach((l,i)=>x.fillText(l,DX,top+37+i*44));
-        y=top+Math.max(52,(ls.length-1)*44+52)+12;
+        const stacked=I18N.language!=='zh';
+        const DX=stacked?L:L+250;x.font='400 28px '+F_BODY;x.fillStyle=T.dim;
+        const ls=wrapEven(x,sk[1],stacked?IW:IW-250);
+        ls.forEach((l,i)=>x.fillText(l,DX,top+(stacked?95:37)+i*44));
+        y=top+(stacked?58:0)+Math.max(52,(ls.length-1)*44+52)+12;
       };
-      sub('基本能力');row(e.base,true);
-      sub('初始技能');skills.forEach(sk=>row(sk,false));
+      sub(tr('基本能力'));row(e.base,true);
+      sub(tr('初始技能'));skills.forEach(sk=>row(sk,false));
       y+=40;
       if(e.traits){
-        heading('特性');
+        heading(tr('特性'));
         x.font='400 29px '+F_BODY;
         e.traits.forEach(t=>{
           const ls=wrapText(x,t,IW-34);
@@ -889,16 +919,18 @@ function drawSkills(k,n,rand){
         });
         y+=40;
       }
-      if(e.side){heading('副作用');para(e.side,29,T.ink,46);y+=40}
+      if(e.side){heading(tr('副作用'));para(e.side,29,T.ink,46);y+=40}
     };
     section(an.a,an.skillsA,an.dual);
     if(an.dual){y+=10;section(an.b,an.skillsB,true)}
 
     // resonance
-    heading('元素共鳴');y+=10;
+    heading(tr('元素共鳴'));y+=10;
     const s=an.s;
     const list=ORDER.slice().sort((p,q)=>{const pp=p===an.a?2:(an.dual&&p===an.b)?1:0,pq=q===an.a?2:(an.dual&&q===an.b)?1:0;return pq-pp||s[q]-s[p]});
-    const cellsX=L+120,cellsW=IW-120-70,cw=(cellsW-23*4)/24;
+    x.font='700 28px '+F_BODY;
+    const labelW=Math.max(120,...ORDER.map(k=>x.measureText(EL[k].name).width+24));
+    const cellsX=L+labelW,cellsW=IW-labelW-70,cw=(cellsW-23*4)/24;
     list.forEach(k=>{
       const me=k===an.a||(an.dual&&k===an.b);
       y+=52;
@@ -911,16 +943,16 @@ function drawSkills(k,n,rand){
     });
     y+=70;
     x.font='400 24px '+F_BODY;x.fillStyle=T.faint;
-    wrapText(x,'元素只作用於自身與周邊，使用會消耗精力。強度因人而異，可以鍛鍊。',IW).forEach(l=>{y+=38;x.fillText(l,L,y)});
+    wrapText(x,tr('元素只作用於自身與周邊，使用會消耗精力。強度因人而異，可以鍛鍊。'),IW).forEach(l=>{y+=38;x.fillText(l,L,y)});
     y+=90;
     x.textAlign='center';x.font='500 28px '+F_BODY;x.fillStyle=T.faint;sp('6px');
-    x.fillText('《裂空的伊爾卡》元素測驗',CW/2,y);sp('0px');
+    x.fillText(tr('《裂空的伊爾卡》元素測驗'),CW/2,y);sp('0px');
     return y+80;
   }
   async function makeCard(an){
     const all=[an.a,an.b].map(k=>{const e=EL[k];return e.name+e.glyph+e.tagline+e.desc+e.base.join('')+e.pool.flat().join('')+(e.traits||[]).join('')+(e.side||'')}).join('')
       +ORDER.map(k=>EL[k].name).join('')+($('rMoment').dataset.full||'')+'【系統】覺醒判定完成雙元素稀有常見可能的第二能力基本初始技能特性副作用元素共鳴《裂空的伊爾卡》測驗兩種力量同時在你體內醒來0123456789%×';
-    try{await Promise.all([document.fonts.load('900 200px '+F_DISPLAY,all),document.fonts.load('700 40px '+F_DISPLAY,all),document.fonts.load('400 30px '+F_BODY,all),document.fonts.load('500 30px '+F_BODY,all),document.fonts.load('700 30px '+F_BODY,all)])}catch(e){}
+    try{await Promise.all([document.fonts.load('900 200px '+F_GLYPH,all),document.fonts.load('900 78px '+F_DISPLAY,all),document.fonts.load('700 40px '+F_DISPLAY,all),document.fonts.load('400 30px '+F_BODY,all),document.fonts.load('500 30px '+F_BODY,all),document.fonts.load('700 30px '+F_BODY,all)])}catch(e){}
     const CW=1080;
     const m=document.createElement('canvas');m.width=CW;m.height=10;
     const H=Math.ceil(layoutCard(m.getContext('2d'),an,CW,0));
@@ -937,45 +969,45 @@ function drawSkills(k,n,rand){
   }
   $('saveBtn').addEventListener('click',async()=>{
     if(!res)return;
-    const btn=$('saveBtn');btn.disabled=true;btn.textContent='製作圖片中⋯';
-    const done=()=>{btn.disabled=false;btn.textContent='儲存結果圖'};
+    const btn=$('saveBtn');btn.disabled=true;btn.textContent=tr('製作圖片中⋯');
+    const done=()=>{btn.disabled=false;btn.textContent=tr('儲存結果圖')};
     let c;
-    try{c=await makeCard(res)}catch(e){done();toast('圖片沒有做成，請再按一次');return}
+    try{c=await makeCard(res)}catch(e){done();toast(tr('圖片沒有做成，請再按一次'));return}
     if(!downloads){
       c.toBlob(blob=>{
         done();
-        if(!blob){showInline(c,'請長按圖片儲存。');return}
+        if(!blob){showInline(c,tr('請長按圖片儲存。'));return}
         const url=URL.createObjectURL(blob);
         const link=document.createElement('a');
-        const nm=res.dual?EL[res.a].name+'與'+EL[res.b].name:EL[res.a].name;
-        link.href=url;link.download='伊爾卡元素測驗_'+nm+'.png';
+        const nm=res.dual?EL[res.a].name+'_'+EL[res.b].name:EL[res.a].name;
+        link.href=url;link.download='irka-elements_'+I18N.language+'_'+nm+'.png';
         document.body.appendChild(link);link.click();link.remove();
         setTimeout(()=>URL.revokeObjectURL(url),60000);
-        showInline(c,'如果沒有自動下載，請長按或右鍵點圖片儲存。');
+        showInline(c,tr('如果沒有自動下載，請長按或右鍵點圖片儲存。'));
       },'image/png');
       return;
     }
     c.toBlob(async blob=>{
-      if(!blob){done();showInline(c,'這裡沒辦法直接存檔，請長按圖片，選「加入照片」。');return}
-      const nm=res.dual?EL[res.a].name+'與'+EL[res.b].name:EL[res.a].name;
-      try{await downloads.save({filename:'伊爾卡元素測驗_'+nm+'.png',data:blob});done();toast('已存好結果圖')}
-      catch(err){done();if(err&&err.code==='declined')return;if(err&&err.code==='rate_limited'){toast('請稍等一下再按');return}showInline(c,'這裡沒辦法直接存檔，請長按圖片，選「加入照片」。')}
+      if(!blob){done();showInline(c,tr('這裡沒辦法直接存檔，請長按圖片，選「加入照片」。'));return}
+      const nm=res.dual?EL[res.a].name+'_'+EL[res.b].name:EL[res.a].name;
+      try{await downloads.save({filename:'irka-elements_'+I18N.language+'_'+nm+'.png',data:blob});done();toast(tr('已存好結果圖'))}
+      catch(err){done();if(err&&err.code==='declined')return;if(err&&err.code==='rate_limited'){toast(tr('請稍等一下再按'));return}showInline(c,tr('這裡沒辦法直接存檔，請長按圖片，選「加入照片」。'))}
     },'image/png');
   });
-  const FIELDS=[['fName','名字'],['fGender','性別'],['fAge','年齡'],['fBefore','穿越前'],['fLook','外貌'],['fPersona','性格']];
+  const FIELDS=[['fName',tr('名字')],['fGender',tr('性別')],['fAge',tr('年齡')],['fBefore',tr('穿越前')],['fLook',tr('外貌')],['fPersona',tr('性格')]];
   function sheetText(){
     if(!res)return '';
-    const out=['【讀者資料】'];
-    FIELDS.forEach(([id,lb])=>out.push(lb+'：'+$(id).value.trim().replace(/\n+/g,'，')));
+    const out=[tr('【讀者資料】')];
+    FIELDS.forEach(([id,lb])=>out.push(tr('{label}：{value}',{label:lb,value:$(id).value.trim().replace(/\n+/g,', ')})));
     const A=EL[res.a],B=EL[res.b];
-    out.push('身分：穿越者（系統綁定）');
-    out.push('元素：'+A.name+' × '+B.name);
-    out.push('基本能力：'+A.base[0]+'、'+B.base[0]);
-    out.push('初始技能：');
+    out.push(tr('身分：穿越者（系統綁定）'));
+    out.push(tr('元素：{a} × {b}',{a:A.name,b:B.name}));
+    out.push(tr('基本能力：{a}、{b}',{a:A.base[0],b:B.base[0]}));
+    out.push(tr('初始技能：'));
     res.skillsA.concat(res.skillsB).forEach(sk=>out.push('・'+sk[0]+'｜'+sk[1]));
     [A,B].forEach(e=>{
-      if(e.traits){out.push('特性（'+e.name+'）：');e.traits.forEach(t=>out.push('・'+t))}
-      if(e.side)out.push('副作用（'+e.name+'）：'+e.side);
+      if(e.traits){out.push(tr('特性（{name}）：',{name:e.name}));e.traits.forEach(t=>out.push('・'+t))}
+      if(e.side)out.push(tr('副作用（{name}）：{value}',{name:e.name,value:e.side}));
     });
     return out.join('\n');
   }
@@ -984,15 +1016,52 @@ function drawSkills(k,n,rand){
   $('jumpBtn').addEventListener('click',()=>$('sheet').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'}));
   $('copyBtn').addEventListener('click',()=>{
     const text=sheetText();
-    const fb=()=>{const ta=$('sheetText');ta.focus();ta.select();$('copyHint').textContent='沒有複製成功，已幫你選取預覽的文字，請長按自行複製。'};
+    const fb=()=>{const ta=$('sheetText');ta.focus();ta.select();$('copyHint').textContent=tr('沒有複製成功，已幫你選取預覽的文字，請長按自行複製。')};
     try{
-      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>{toast('已複製人設表格');$('copyHint').textContent='已複製！貼到角色卡的人設欄就好。'},fb);
+      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>{toast(tr('已複製人設表格'));$('copyHint').textContent=tr('已複製！貼到角色卡的人設欄就好。')},fb);
       else fb();
     }catch(err){fb()}
   });
   $('startBtn').addEventListener('click',begin);
   $('againBtn').addEventListener('click',begin);
   $('backBtn').addEventListener('click',()=>{if(idx>0&&!lock){idx--;renderQ();animate($('qpanel'))}});
+
+  // Keep this tab's progress when a language change reloads the translated data.
+  const fieldIds=FIELDS.map(([id])=>id);
+  $('languageSelect').addEventListener('change',event=>{
+    const stage=Object.keys(screens).find(key=>!screens[key].hidden)||'start';
+    const snapshot={stage,introDone,order,answers,idx,scrollY:window.scrollY,
+      fields:Object.fromEntries(fieldIds.map(id=>[id,$(id).value])),
+      result:stage==='result'&&res?{a:res.a,b:res.b,dual:res.dual,s:res.s,
+        skillsA:res.skillsA.map(skill=>EL[res.a].pool.indexOf(skill)),
+        skillsB:res.skillsB.map(skill=>EL[res.b].pool.indexOf(skill))}:null};
+    try{sessionStorage.setItem(I18N.resumeKey,JSON.stringify(snapshot))}catch(_){}
+    I18N.change(event.target.value);
+  });
+  try{
+    const saved=sessionStorage.getItem(I18N.resumeKey);
+    sessionStorage.removeItem(I18N.resumeKey);
+    if(saved){
+      const state=JSON.parse(saved);
+      if(state.introDone||state.stage!=='start')finishIntro();
+      fieldIds.forEach(id=>{if(typeof state.fields?.[id]==='string')$(id).value=state.fields[id]});
+      const validOrder=Array.isArray(state.order)&&state.order.length===QS.length&&state.order.every((row,i)=>Array.isArray(row)&&row.length===QS[i].o.length&&new Set(row).size===row.length&&row.every(n=>Number.isInteger(n)&&n>=0&&n<row.length));
+      const validAnswers=Array.isArray(state.answers)&&state.answers.length===QS.length&&state.answers.every((n,i)=>n===null||(Number.isInteger(n)&&n>=0&&n<QS[i].o.length));
+      if(validOrder&&validAnswers){
+        order=state.order;answers=state.answers;idx=Math.min(QS.length-1,Math.max(0,Number(state.idx)||0));
+        if(state.stage==='quiz'){renderQ();show('quiz')}
+        if(state.stage==='result'&&state.result){
+          const r=state.result;
+          const validSkills=(key,skills)=>ORDER.includes(key)&&Array.isArray(skills)&&skills.length===2&&new Set(skills).size===2&&skills.every(i=>Number.isInteger(i)&&i>=0&&i<EL[key].pool.length);
+          if(r.dual&&r.a!==r.b&&validSkills(r.a,r.skillsA)&&validSkills(r.b,r.skillsB)){
+            res={...r,s:score(answers.map((oi,i)=>QS[i].o[oi])),skillsA:r.skillsA.map(i=>EL[r.a].pool[i]),skillsB:r.skillsB.map(i=>EL[r.b].pool[i])};
+            renderResult(res);show('result');
+          }
+        }
+      }
+      requestAnimationFrame(()=>window.scrollTo(0,Number(state.scrollY)||0));
+    }
+  }catch(_){}
 })();
 </script>
 
