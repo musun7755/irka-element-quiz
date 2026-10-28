@@ -310,6 +310,7 @@ html:not([lang="zh-Hant"]) .res-name h2{font-size:clamp(26px,7vw,36px)}
         <button class="btn primary" id="saveBtn" type="button">儲存結果圖</button>
         <button class="btn" id="againBtn" type="button">重新測驗</button>
       </div>
+      <p class="sheet-hint" id="shareHint" hidden></p>
       <div class="card-wrap" id="cardWrap" hidden>
         <img id="cardImg" alt="元素覺醒結果圖">
         <p id="cardNote">這裡沒辦法直接存檔，請長按圖片，選「加入照片」。</p>
@@ -337,7 +338,7 @@ html:not([lang="zh-Hant"]) .res-name h2{font-size:clamp(26px,7vw,36px)}
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="locales.js"></script>
+<script src="locales.js?v=20261029"></script>
 <script>
 const tr=I18N.tr;
 I18N.localizePage();
@@ -641,11 +642,15 @@ function drawSkills(k,n,rand){
 
   /* ---------- quiz ---------- */
   let order=[],answers=[],idx=0,lock=false,res=null,shareText='',downloads=null;
+  const isAppleMobile=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  let preparedAppleImage=null,applePreparationId=0;
   if(window.claude&&typeof window.claude.use==='function'){
     window.claude.use('downloads').then(n=>{downloads=n}).catch(()=>{});
   }
   function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
   function begin(){
+    preparedAppleImage=null;applePreparationId++;
+    $('saveBtn').disabled=false;$('saveBtn').textContent=tr('儲存結果圖');
     order=QS.map(q=>shuffle(q.o.map((_,i)=>i)));
     answers=new Array(QS.length).fill(null);idx=0;
     root.style.setProperty('--el',DEFAULT_RIFT);
@@ -785,6 +790,7 @@ function drawSkills(k,n,rand){
       shareText=tr('我在裂縫下覺醒了【{a}】',{a:A.name})+(A.rare?tr('（稀有元素）'):'')+'\n'+A.tagline+tr('\n基本能力：')+A.base[0]+tr('\n初始技能：')+nm(an.skillsA)+tr('\n第二元素：')+B.name+'（'+an.pct+tr('%）\n\n《裂空的伊爾卡》元素測驗');
     }
     updateSheet();
+    if(isAppleMobile)prepareAppleImage(an);
   }
 
   /* ---------- result long image ---------- */
@@ -963,12 +969,53 @@ function drawSkills(k,n,rand){
 
   let toastT;
   function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2000)}
-  function showInline(c,msg){
+  function showInline(c,msg,scroll=true){
     $('cardImg').src=c.toDataURL('image/png');$('cardNote').textContent=msg;$('cardWrap').hidden=false;
-    $('cardWrap').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+    if(scroll)$('cardWrap').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+  }
+  function supportsImageShare(file){
+    try{return typeof navigator.share==='function'&&typeof navigator.canShare==='function'&&navigator.canShare({files:[file]})}catch(_){return false}
+  }
+  async function prepareAppleImage(an){
+    const preparationId=++applePreparationId;
+    const btn=$('saveBtn');
+    preparedAppleImage=null;btn.disabled=true;btn.textContent=tr('製作圖片中⋯');
+    try{
+      // Prepare before the tap: iOS requires sharing to start during user activation.
+      const canvas=await makeCard(an);
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+      if(preparationId!==applePreparationId)return;
+      if(!blob)throw new Error('PNG export failed');
+      const nm=an.dual?EL[an.a].name+'_'+EL[an.b].name:EL[an.a].name;
+      const file=new File([blob],'irka-elements_'+I18N.language+'_'+nm+'.png',{type:'image/png'});
+      preparedAppleImage={canvas,file};
+      const canShare=supportsImageShare(file);
+      $('shareHint').textContent=tr(canShare?'在分享選單選擇「儲存影像」，即可存入相簿。':'請長按下方圖片，選擇「儲存影像」存入相簿。');
+      $('shareHint').hidden=false;
+      if(!canShare)showInline(canvas,tr('請長按下方圖片，選擇「儲存影像」存入相簿。'),false);
+    }catch(_){
+      if(preparationId===applePreparationId)toast(tr('圖片沒有做成，請再按一次'));
+    }finally{
+      if(preparationId===applePreparationId){btn.disabled=false;btn.textContent=tr('儲存結果圖')}
+    }
   }
   $('saveBtn').addEventListener('click',async()=>{
     if(!res)return;
+    if(isAppleMobile){
+      const image=preparedAppleImage;
+      if(!image){prepareAppleImage(res);return}
+      if(!supportsImageShare(image.file)){
+        showInline(image.canvas,tr('請長按下方圖片，選擇「儲存影像」存入相簿。'));return;
+      }
+      const btn=$('saveBtn');btn.disabled=true;
+      try{
+        // Share only the PNG, so iOS offers image actions rather than a web link.
+        await navigator.share({files:[image.file]});
+      }catch(error){
+        if(error.name!=='AbortError')showInline(image.canvas,tr('分享選單無法開啟，請長按下方圖片並選擇「儲存影像」。'));
+      }finally{btn.disabled=false}
+      return;
+    }
     const btn=$('saveBtn');btn.disabled=true;btn.textContent=tr('製作圖片中⋯');
     const done=()=>{btn.disabled=false;btn.textContent=tr('儲存結果圖')};
     let c;

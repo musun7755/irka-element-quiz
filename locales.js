@@ -2483,6 +2483,24 @@ const TRANSLATIONS = [
     "Language",
     "言語",
     "언어"
+  ],
+  [
+    "在分享選單選擇「儲存影像」，即可存入相簿。",
+    "Choose Save Image in the share menu to save it to Photos.",
+    "共有メニューで「画像を保存」を選ぶと、写真に保存できます。",
+    "공유 메뉴에서 '이미지 저장'을 선택하면 사진 앱에 저장할 수 있어요."
+  ],
+  [
+    "請長按下方圖片，選擇「儲存影像」存入相簿。",
+    "Press and hold the image below, then choose Save Image to save it to Photos.",
+    "下の画像を長押しし、「画像を保存」を選んで写真に保存してください。",
+    "아래 이미지를 길게 누른 뒤 '이미지 저장'을 선택해 사진 앱에 저장해 주세요."
+  ],
+  [
+    "分享選單無法開啟，請長按下方圖片並選擇「儲存影像」。",
+    "The share menu could not open. Press and hold the image below and choose Save Image.",
+    "共有メニューを開けませんでした。下の画像を長押しし、「画像を保存」を選んでください。",
+    "공유 메뉴를 열지 못했어요. 아래 이미지를 길게 누른 뒤 '이미지 저장'을 선택해 주세요."
   ]
 ];
 // Strings use the Traditional Chinese source as their stable lookup key.
