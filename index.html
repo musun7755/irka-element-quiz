@@ -684,8 +684,8 @@ function drawSkills(k,n,rand){
     const s=score(answers.map((oi,i)=>QS[i].o[oi]));
     const an=analyze(s,Math.random);
     an.s=s;
-    an.skillsA=drawSkills(an.a,3,Math.random);
-    if(an.dual)an.skillsB=drawSkills(an.b,3,Math.random);
+    an.skillsA=drawSkills(an.a,2,Math.random);
+    if(an.dual)an.skillsB=drawSkills(an.b,2,Math.random);
     res=an;renderResult(an);show('result');
   }
 
