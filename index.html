@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>伊爾卡元素測驗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+Hei+HK:wght@400;500;700&family=Chiron+Sung+HK:wght@500;700;900&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow column under a fixed night sky; the rift hangs where the moon used to be, and every screen sits beneath it. Single dark look by choice. */
+:root{
+  color-scheme: dark;
+  --night:#0a0c13;
+  --night-2:#121624;
+  --night-3:#1b2134;
+  --veil:rgba(10,12,19,.8);
+  --line:#2a3149;
+  --ink:#ebe6dc;
+  --ink-bright:#ffffff;
+  --ink-soft:#b9b7c3;
+  --ink-dim:#a3a5b4;
+  --ink-faint:#6d728a;
+  --rift:#d9d3ff;
+  --gold:#dcb76e;
+  --el:#d9d3ff;
+  --gc:#d9d3ff;
+  --gf:#d9d3ff;
+  --font-display:"Chiron Sung HK","Noto Serif TC","Songti TC","PMingLiU",serif;
+  --font-body:"Chiron Hei HK","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --font-data:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--night);color:var(--ink)}
+body{font-family:var(--font-body);font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+#sky{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
+.wrap{position:relative;z-index:1;max-width:600px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 64px}
+.sky-gap{height:clamp(170px,28vh,230px)}
+.screen{display:flex;flex-direction:column;gap:20px}
+.enter{animation:rise .5s ease both}
+@keyframes rise{from{opacity:.2;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.eyebrow{margin:0;font-size:13px;letter-spacing:.3em;color:var(--ink-dim)}
+.title{margin:0;font-family:var(--font-display);font-weight:900;font-size:clamp(34px,8.6vw,52px);line-height:1.22;letter-spacing:.04em;text-wrap:balance}
+
+/* intro */
+#start{cursor:default}
+#start.playing{cursor:pointer}
+.intro{display:flex;flex-direction:column;gap:10px;font-family:var(--font-display);font-weight:500;font-size:clamp(18px,4.7vw,21px);line-height:1.9;max-width:30em}
+.intro p{margin:0}
+.line{opacity:0;transition:opacity 1.2s ease}
+.line.on{opacity:1}
+.sw{color:var(--c);font-weight:700}
+.intro-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:32px}
+.tap-hint{font-size:13px;color:var(--ink-faint);letter-spacing:.2em;animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{50%{opacity:.3}}
+.after{display:flex;flex-direction:column;gap:20px;padding-top:8px}
+
+.roster{display:flex;flex-direction:column;gap:10px;padding-block:16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.roster-row{display:grid;grid-template-columns:3em 1fr;align-items:baseline;gap:8px}
+.roster-label{font-size:13px;letter-spacing:.2em;color:var(--ink-faint)}
+.roster-label.rare{color:var(--gold)}
+.roster ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px}
+.roster li{display:flex;align-items:center;gap:7px;font-size:15px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c);flex:none}
+
+.btn{font:inherit;font-size:16px;letter-spacing:.14em;padding:12px 24px;border-radius:3px;border:1px solid var(--line);background:var(--night-2);color:var(--ink);cursor:pointer;transition:border-color .2s,background-color .2s}
+.btn:hover{border-color:var(--ink-faint)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.primary{background:var(--ink);color:var(--night);border-color:var(--ink);font-weight:700}
+.btn.primary:hover{background:var(--ink-bright)}
+button:focus-visible{outline:2px solid var(--rift);outline-offset:3px}
+.start-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.meta{margin:0;font-size:13px;color:var(--ink-faint);letter-spacing:.1em}
+.link{font:inherit;font-size:14px;color:var(--ink-dim);background:none;border:0;padding:4px 0;cursor:pointer;letter-spacing:.1em}
+.link:hover{color:var(--ink)}
+.link:disabled{opacity:.3;cursor:default}
+
+/* quiz */
+.panel{background:var(--veil);border:1px solid var(--line);border-radius:4px;padding:20px 18px 22px;display:flex;flex-direction:column;gap:18px;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.progress{display:grid;grid-template-columns:repeat(15,1fr);gap:3px}
+.progress i{height:3px;background:var(--line);border-radius:2px}
+.progress i.done{background:var(--rift)}
+.progress i.now{background:var(--ink-faint)}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.qnum{font-family:var(--font-data);font-size:13px;color:var(--ink-dim);letter-spacing:.12em;font-variant-numeric:tabular-nums}
+.qtext{display:flex;flex-direction:column;gap:2px;font-family:var(--font-display);font-weight:500;font-size:15.5px;line-height:1.95;color:var(--ink-soft)}
+.qtext p{margin:0}
+.qtext p.last{font-weight:700;font-size:clamp(19px,5.2vw,23px);line-height:1.55;color:#ecd39a;margin-top:10px;text-wrap:balance}
+.sysbox{position:relative;margin:10px 0 8px;padding:9px 12px 11px;border:1px solid rgba(217,211,255,.55);border-radius:8px;background:linear-gradient(135deg,rgba(217,211,255,.13),rgba(217,211,255,.03));box-shadow:0 0 18px rgba(217,211,255,.16),inset 0 0 14px rgba(217,211,255,.06);font-family:var(--font-body)}
+.sysbox::before,.sysbox::after{content:"";position:absolute;width:10px;height:10px;border:2px solid var(--rift)}
+.sysbox::before{top:-2px;left:-2px;border-right:0;border-bottom:0;border-top-left-radius:8px}
+.sysbox::after{bottom:-2px;right:-2px;border-left:0;border-top:0;border-bottom-right-radius:8px}
+.sysbox .who{display:flex;align-items:center;gap:7px;font-size:12px;letter-spacing:.3em;color:var(--rift);margin-bottom:2px}
+.sysbox .who::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--rift);box-shadow:0 0 8px var(--rift);animation:blink 1.4s ease-in-out infinite}
+.sysbox .say{color:var(--ink-bright);font-size:16.5px;line-height:1.7;min-height:1.7em;text-wrap:pretty}
+.sysbox .say.typing::after{content:"";display:inline-block;width:2px;height:1em;margin-left:2px;vertical-align:-2px;background:var(--rift);animation:blink .7s steps(1) infinite}
+.sysbox.pop{animation:pop .4s cubic-bezier(.2,.9,.3,1.3) both}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes blink{50%{opacity:.2}}
+.intro .turn{color:var(--ink-dim);font-size:.92em}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{width:100%;text-align:left;font:inherit;font-size:16px;line-height:1.6;padding:14px 16px;background:var(--night-2);border:1px solid var(--line);color:var(--ink);border-radius:3px;cursor:pointer;display:flex;gap:14px;align-items:baseline;transition:border-color .2s,background-color .2s}
+.opt:hover{border-color:var(--ink-faint)}
+.opt .k{font-family:var(--font-data);font-size:12px;color:var(--ink-faint);flex:none}
+.opt .t{min-width:0}
+.opt.chosen{border-color:var(--rift);background:var(--night-3)}
+.opt.chosen .k{color:var(--rift)}
+
+/* result */
+.res-head{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+.glyphs{display:flex;gap:4px}
+.glyph{font-family:var(--font-display);font-weight:900;font-size:clamp(84px,24vw,120px);line-height:1;color:var(--gf);text-shadow:0 0 30px color-mix(in srgb,var(--gc) 60%,transparent),0 0 3px var(--gc)}
+.glyph.void{-webkit-text-stroke:1.5px var(--gc)}
+.glyphs.dual .glyph{font-size:clamp(56px,15vw,84px)}
+.enter .glyph{animation:awaken 1.1s ease both}
+@keyframes awaken{from{opacity:.25;filter:blur(8px)}to{opacity:1;filter:none}}
+.res-name{min-width:0}
+.res-name h2{margin:0;font-family:var(--font-display);font-weight:900;font-size:clamp(28px,7.6vw,40px);letter-spacing:.06em;line-height:1.25;text-wrap:balance}
+.tag{display:inline-block;margin-top:8px;font-size:12px;letter-spacing:.2em;padding:2px 9px;border:1px solid var(--line);color:var(--ink-dim);border-radius:2px;white-space:nowrap}
+.tag.rare{border-color:var(--gold);color:var(--gold)}
+.tagline{margin:10px 0 0;color:var(--ink);font-size:17px}
+.moment{margin:0;padding:14px 16px;border-left:2px solid var(--el);font-family:var(--font-display);font-size:17px;line-height:1.7;color:var(--ink);background:color-mix(in srgb,var(--el) 8%,transparent)}
+
+.second{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border:1px solid var(--line);border-radius:3px;background:var(--night-2)}
+.second-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.second .lbl{font-size:13px;letter-spacing:.2em;color:var(--ink-dim)}
+.second .pct{font-family:var(--font-data);font-size:22px;color:var(--gc);font-variant-numeric:tabular-nums}
+.second-name{font-family:var(--font-display);font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.second-name .tag{margin-top:0}
+.meter{height:4px;background:var(--night-3);border-radius:2px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--gc)}
+.note{margin:0;font-size:13px;color:var(--ink-faint)}
+
+.el-sec{display:flex;flex-direction:column;gap:16px}
+.el-sec + .el-sec{padding-top:20px;border-top:1px solid var(--line)}
+.el-sec-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.el-sec-head strong{font-family:var(--font-display);font-size:22px;letter-spacing:.06em}
+.el-sec-head .tag{margin-top:0}
+.el-sec-head .sub{flex-basis:100%;color:var(--ink-dim);font-size:15px}
+.desc{margin:0}
+.block{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
+.block h3{margin:0;font-size:13px;letter-spacing:.3em;color:var(--ink-dim);font-weight:500}
+.block p{margin:0}
+.skill-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.skill-list li{display:grid;grid-template-columns:6.4em 1fr;gap:12px;align-items:baseline}
+.sk-name{justify-self:start;padding:2px 10px;border:1px solid color-mix(in srgb,var(--gc) 60%,var(--line));border-radius:2px;font-size:15px;white-space:nowrap}
+.sk-base .sk-name{background:color-mix(in srgb,var(--gc) 16%,transparent)}
+.sk-desc{font-size:14.5px;color:var(--ink-dim);min-width:0;line-height:1.6}
+.sk-sep{font-size:12px;letter-spacing:.24em;color:var(--ink-faint);padding-top:4px}
+.traits{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+.traits li::marker{color:var(--gc)}
+.reso{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.reso li{display:grid;grid-template-columns:3.2em 1fr 2.4ch;gap:10px;align-items:center;font-size:14px;color:var(--ink-dim)}
+.reso li.me{color:var(--ink);font-weight:700}
+.cells{display:grid;grid-template-columns:repeat(24,1fr);gap:2px}
+.cells i{height:8px;border-radius:1px;background:var(--night-3)}
+.cells i.on{background:var(--c)}
+.reso li:not(.me) .cells i.on{opacity:.5}
+.reso .n{font-family:var(--font-data);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.lore{margin:0;font-size:13.5px;color:var(--ink-faint)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.card-wrap{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.card-wrap img{width:100%;max-width:360px;border:1px solid var(--line);border-radius:4px;-webkit-touch-callout:default}
+.card-wrap p,.fallback p{margin:0;font-size:13.5px;color:var(--ink-dim)}
+.fallback{display:flex;flex-direction:column;gap:8px}
+.fallback textarea{width:100%;min-height:150px;font:inherit;font-size:15px;line-height:1.6;color:var(--ink);background:var(--night-2);border:1px solid var(--line);border-radius:3px;padding:10px 12px;resize:vertical}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--night);padding:8px 18px;border-radius:3px;font-size:14px;letter-spacing:.1em;opacity:0;pointer-events:none;transition:opacity .2s;z-index:5}
+.toast.show{opacity:1}
+
+.jump{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;font:inherit;font-size:16px;font-weight:700;letter-spacing:.08em;padding:14px 18px;border-radius:4px;border:1px solid var(--gold);background:rgba(220,183,110,.12);color:#ecd39a;cursor:pointer;text-align:left}
+.jump:hover{background:rgba(220,183,110,.2)}
+.sheet{display:flex;flex-direction:column;gap:16px;padding:22px 18px 24px;border:2px solid var(--gold);border-radius:6px;background:rgba(18,16,12,.86);box-shadow:0 0 28px rgba(220,183,110,.18);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);scroll-margin-top:16px}
+.sheet-step{margin:0;font-size:13px;letter-spacing:.3em;color:var(--gold)}
+.sheet-title{margin:-8px 0 0;font-family:var(--font-display);font-weight:900;font-size:clamp(26px,7vw,34px);letter-spacing:.08em;color:#ecd39a}
+.sheet .sysbox{margin:0}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fields label{display:flex;flex-direction:column;gap:6px;font-size:13px;letter-spacing:.16em;color:var(--ink-dim);min-width:0}
+.fields label.wide{grid-column:1/-1}
+.fields input,.fields textarea{width:100%;font:inherit;font-size:16px;letter-spacing:0;color:var(--ink);background:var(--night-2);border:1px solid var(--line);border-radius:3px;padding:10px 12px;resize:vertical}
+.fields input:focus,.fields textarea:focus,.preview:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:transparent}
+.sheet-label{margin:0;font-size:13px;letter-spacing:.3em;color:var(--ink-dim)}
+.preview{width:100%;min-height:300px;font-family:var(--font-body);font-size:14.5px;line-height:1.7;color:var(--ink);background:var(--night);border:1px dashed rgba(220,183,110,.5);border-radius:3px;padding:12px 14px;resize:vertical}
+.btn.big{width:100%;padding:16px 24px;font-size:18px;font-weight:700;background:var(--gold);border-color:var(--gold);color:#1a1408}
+.btn.big:hover{background:#ecd39a}
+.sheet-hint{margin:0;font-size:13.5px;color:var(--ink-dim);text-align:center}
+#result{gap:24px}
+@media (max-width:380px){.fields{grid-template-columns:1fr}}
+@media (prefers-reduced-motion: reduce){
+  .enter,.enter .glyph,.tap-hint,.sysbox.pop,.sysbox .who::before{animation:none}
+  .line,.btn,.opt,.toast{transition:none}
+}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<main class="wrap">
+  <div class="sky-gap"></div>
+
+  <section id="start" class="screen">
+    <p class="eyebrow">《裂空的伊爾卡》</p>
+    <div class="intro" id="intro">
+      <p><span class="line">二十年前的某個夜晚，月亮被撕成了一道裂縫。</span></p>
+      <p><span class="line">動植物開始異變，城市一座座倒下。</span></p>
+      <p><span class="line">人們不再數日子，只看它的顏色過活：<span class="sw" style="--c:#4fb38a">翡翠</span>、<span class="sw" style="--c:#e2c26a">金石</span>、<span class="sw" style="--c:#d98b3a">琥珀</span>、<span class="sw" style="--c:#959bb0">灰曜</span>。</span></p>
+      <p><span class="line">每當它轉成血紅，代表「<span class="sw" style="--c:#e0384a">獸潮</span>」要來了。</span></p>
+      <p><span class="line">倖存者們築起圍牆、建立聚落，一起抵抗異獸。</span></p>
+      <p><span class="line">而有些人，在裂縫的光下覺醒了力量⋯⋯</span></p>
+      <p class="turn"><span class="line">你讀到這裡，眼皮越來越重。</span></p>
+    </div>
+    <div class="intro-foot" id="introFoot">
+      <span class="tap-hint">點一下繼續</span>
+      <button class="link" id="skipBtn" type="button">跳過</button>
+    </div>
+    <div class="after" id="after" hidden>
+      <h1 class="title">你會覺醒<br>哪一種元素？</h1>
+      <div class="roster">
+        <div class="roster-row">
+          <span class="roster-label">常見</span>
+          <ul>
+            <li><span class="dot" style="--c:#aeb9c6"></span>金</li>
+            <li><span class="dot" style="--c:#5aaae6"></span>水</li>
+            <li><span class="dot" style="--c:#f26d3d"></span>火</li>
+            <li><span class="dot" style="--c:#f0d44c"></span>雷</li>
+            <li><span class="dot" style="--c:#b9925a"></span>地</li>
+            <li><span class="dot" style="--c:#74d6b0"></span>風</li>
+          </ul>
+        </div>
+        <div class="roster-row">
+          <span class="roster-label rare">稀有</span>
+          <ul>
+            <li><span class="dot" style="--c:#9c86e6"></span>虛空</li>
+            <li><span class="dot" style="--c:#e8eefc"></span>殘月</li>
+            <li><span class="dot" style="--c:#e0466e"></span>異化</li>
+          </ul>
+        </div>
+      </div>
+      <div class="start-actions">
+        <button class="btn primary" id="startBtn" type="button">開始測驗</button>
+        <p class="meta">共 15 題・約 4 分鐘</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="quiz" class="screen" hidden>
+    <div class="panel" id="qpanel">
+      <div class="progress" id="progress" aria-hidden="true"></div>
+      <div class="qhead">
+        <span class="qnum" id="qnum">01 / 15</span>
+        <button class="link" id="backBtn" type="button">上一題</button>
+      </div>
+      <div class="qtext" id="qtext"></div>
+      <div class="options" id="options" role="group" aria-labelledby="qtext"></div>
+    </div>
+  </section>
+
+  <section id="result" class="screen" hidden>
+    <div class="panel">
+      <p class="eyebrow">【系統】覺醒判定完成</p>
+      <div class="res-head">
+        <div class="glyphs" id="rGlyphs" aria-hidden="true"></div>
+        <div class="res-name">
+          <h2 id="rName"></h2>
+          <span class="tag" id="rTag"></span>
+          <p class="tagline" id="rTagline"></p>
+        </div>
+      </div>
+      <div class="sysbox" id="rSys"><div class="who">系統</div><div class="say" id="rMoment"></div></div>
+      <button class="jump" id="jumpBtn" type="button"><span>建立讀者資料，帶進故事裡</span><span aria-hidden="true">↓</span></button>
+      <div class="second" id="rSecond"></div>
+      <div id="rBody" class="el-wrap"></div>
+      <div class="block">
+        <h3>元素共鳴</h3>
+        <ul class="reso" id="rReso"></ul>
+      </div>
+      <p class="lore">元素只作用於自身與周邊，使用會消耗精力。強度因人而異，可以鍛鍊。</p>
+      <div class="actions">
+        <button class="btn primary" id="saveBtn" type="button">儲存結果圖</button>
+        <button class="btn" id="againBtn" type="button">重新測驗</button>
+      </div>
+      <div class="card-wrap" id="cardWrap" hidden>
+        <img id="cardImg" alt="元素覺醒結果圖">
+        <p id="cardNote">這裡沒辦法直接存檔，請長按圖片，選「加入照片」。</p>
+      </div>
+    </div>
+
+    <div class="sheet" id="sheet">
+      <p class="sheet-step">最後一步</p>
+      <h2 class="sheet-title">讀者資料表</h2>
+      <div class="sysbox"><div class="who">系統</div><div class="say">讀者大大～把資料填一填，複製起來，貼進角色卡的人設欄，就能帶著這身元素進入故事囉！</div></div>
+      <div class="fields">
+        <label for="fName">名字<input id="fName" type="text" autocomplete="off" placeholder="你在這個世界的名字"></label>
+        <label for="fGender">性別<input id="fGender" type="text" autocomplete="off"></label>
+        <label for="fAge">年齡<input id="fAge" type="text" autocomplete="off" inputmode="numeric"></label>
+        <label for="fBefore">穿越前<input id="fBefore" type="text" autocomplete="off" placeholder="職業或身分"></label>
+        <label class="wide" for="fLook">外貌<textarea id="fLook" rows="2"></textarea></label>
+        <label class="wide" for="fPersona">性格<textarea id="fPersona" rows="2"></textarea></label>
+      </div>
+      <p class="sheet-label">預覽</p>
+      <textarea class="preview" id="sheetText" readonly aria-label="讀者資料表預覽"></textarea>
+      <button class="btn big" id="copyBtn" type="button">複製人設表格</button>
+      <p class="sheet-hint" id="copyHint">沒填的欄位會留空，貼上後也能再改。</p>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/*DATA*/
+const ORDER=['metal','water','fire','lightning','earth','wind','void','moon','feral'];
+const EL={
+  metal:{name:'金',glyph:'金',rare:false,color:'#aeb9c6',
+    tagline:'說好要守的，就守到最後',
+    desc:'你相信能握在手裡的東西。答應過的事你不會反悔，想要的你會一錘一錘打出來。聚落裡最靠得住的那面牆，常常就是你。',
+    moment:'握住鐵管的那一刻，你摸得到金屬裡的紋路。',
+    base:['控金','凝出金屬或操控身邊的金屬，熟練可以改變形狀與硬度'],
+    pool:[['硬化', '讓皮膚或武器硬得像鋼鐵'], ['鍛造', '不用爐火，直接把金屬捏成工具'], ['鉤索', '把金屬拉成長鉤，盪到高處'], ['金屬刃', '把手邊的金屬拉成一把利刃'], ['迴旋刃', '甩出一片圓刃，會繞回手中'], ['鐵盾', '金屬在身前展開成盾，擋下撲擊'], ['鐵刺', '從地面或金屬表面刺出尖銳鐵刺'], ['磁吸', '把附近的金屬吸到手邊'], ['鋼針', '射出細長鋼針，專刺甲殼的縫隙'], ['金屬鞭', '把金屬拉成長鞭，能抽打也能纏住']]},
+  water:{name:'水',glyph:'水',rare:false,color:'#5aaae6',
+    tagline:'最冷靜的那一個',
+    desc:'你很少慌。別人吵成一團的時候，你已經在想下一步。你能包容很多事，可是被逼到底線，你會冷得像結了冰。',
+    moment:'渴到快撐不住的那天，你的掌心滲出了乾淨的水。',
+    base:['控水','凝出水或操控身邊的水，熟練可以改變形態與溫度'],
+    pool:[['淨水', '讓髒水變得能喝'], ['凍結', '讓水或敵人的腳瞬間結冰'], ['水刃', '把水壓成細流，切開皮肉'], ['冰牆', '立起一道冰牆擋住攻擊'], ['霧氣', '放出濃霧，遮住敵人的視線'], ['冰行', '腳下凝出冰面，滑行前進，經過的地方留下一道冰'], ['水牢', '把敵人困在一團水球裡']]},
+  fire:{name:'火',glyph:'火',rare:false,color:'#f26d3d',
+    tagline:'先衝再說',
+    desc:'你的情緒來得快，去得也快。你會第一個衝出去，也會第一個把凍僵的人拉到火邊。末日裡，總要有人把火點起來。',
+    moment:'那晚很冷，你只是想讓身邊的人暖一點。',
+    base:['控火','生出火或操控身邊的火，可以改變燃點與方向'],
+    pool:[['點燃', '讓碰到的東西起火'], ['加熱', '讓物體升溫，能把鐵燒到發紅'], ['火球', '擲出火球，撞上時炸開'], ['火牆', '在地上燃起一道火牆，擋住去路'], ['附火', '讓武器纏上火焰'], ['爆焰', '在近距離引爆一團烈火'], ['火蛇', '火焰化成蛇形，追著目標咬'], ['燎原', '火沿著地面一路蔓延，燒向目標'], ['火種', '留下一點火星，敵人靠近時炸開']]},
+  lightning:{name:'雷',glyph:'雷',rare:false,color:'#f0d44c',
+    tagline:'腦子轉得比誰都快',
+    desc:'你一眼就看得出哪裡不對勁，手比嘴還快。舊時代的機器到你手上會重新動起來，怪物撲過來時，你也總是最先反應的那個。',
+    moment:'指尖碰到斷掉的電線，整間屋子的燈亮了。',
+    base:['控雷','在指間生出電流，或操控身邊的電，改變它的去向'],
+    pool:[['麻痺', '電流讓目標短暫動彈不得'], ['供電', '替舊時代的機器重新通電'], ['電擊', '觸碰的瞬間放出強電'], ['雷鞭', '把雷電拉成長鞭抽打'], ['閃光', '爆出強光，讓敵人短暫失明'], ['落雷', '在小範圍內落下一道雷擊'], ['雷槍', '雷電凝成長槍，擲出貫穿'], ['連鎖', '電流在相鄰的敵人之間跳躍'], ['電療', '微弱電流讓痠痛與麻木退去']]},
+  earth:{name:'地',glyph:'地',rare:false,color:'#b9925a',
+    tagline:'把荒地守成家的人',
+    desc:'你不急。你會挑一塊地，蓋牆、開田、種下麵根，一年一年把它守成家。身邊的人來來去去，你一直都在。',
+    moment:'獸潮那一夜，你跪在泥裡，牆從你腳下長了出來。',
+    base:['控土','凝出土石或操控身邊的土石，讓它隆起、塌陷、移動'],
+    pool:[['築牆', '從地面立起一道土牆'], ['耕地', '一揮手，翻鬆整片田'], ['催生植物', '讓植物在幾息之間長大'], ['地刺', '腳下的地面竄出石刺'], ['流沙', '讓敵人腳下的地面變成流沙'], ['石膚', '皮膚覆上一層岩石，抵擋攻擊'], ['岩槍', '岩石凝成長槍，擲向目標'], ['震地', '重重一踏，震倒周圍的敵人'], ['荊棘纏繞', '催生荊棘，把敵人纏住']]},
+  wind:{name:'風',glyph:'風',rare:false,color:'#74d6b0',
+    tagline:'停不下來',
+    desc:'你最討厭被困住。地圖上空白的地方你都想去看看，探路、送信、獨自上路，你總是走得最遠。想找你，得先追得上你。',
+    moment:'被怪物逼到懸崖邊，你跳了下去，風接住了你。',
+    base:['控風','生出氣流或操控身邊的風，讓風聽你的'],
+    pool:[['加速', '風推著你，跑得比誰都快'], ['風刃', '射出看不見的風刃'], ['風壓', '強風把敵人壓倒或推開'], ['捲風', '在小範圍內捲起旋風'], ['風槍', '壓縮空氣，射出能貫穿的一擊'], ['氣爆', '壓縮空氣後瞬間炸開'], ['風鎧', '身邊纏著氣流，偏開飛來的攻擊'], ['順風', '讓同伴的腳步也跟著輕快起來'], ['浮空', '風托住身體，從高處落下也不會受傷']]},
+  void:{name:'虛空',glyph:'虛',rare:true,color:'#9c86e6',glyphFill:'#08070d',core:'#06050b',
+    tagline:'心裡有個沒有底的地方',
+    desc:'你習慣把東西收起來，包括情緒。平常看不出來，可一旦被逼到極限，連你自己都控制不住。',
+    moment:'你一直在忍。直到那一刻，眼前的空氣裂開了。',
+    base:['開裂口','在身邊撕開一道黑色裂口，初期約掌心大'],
+    pool:[['收納','把無生命的物體收進虛空，活物放進去會窒息'],['切割','用裂口邊緣切開甲殼與金屬'],['吞擊','在身前打開虛空，把飛來的攻擊吞進去'],['射出','把收著的東西從虛空高速射出'],['陷阱','在敵人腳下打開虛空，讓牠一腳踩空'],['飛刃','把裂口甩出去，像一片黑色飛刃'],['吞噬','把怪物的半邊身體吞進虛空，讓牠窒息']],
+    traits:['產生黑色虛空，內部漆黑無底，無聲無光','裂口大小因人而異，初期約掌心大','只能放無生命的物體，活物會窒息','最不穩定，情緒激動時虛空可能會失控打開'],
+    side:'使用時身體冒冷氣，平時體溫偏低'},
+  moon:{name:'殘月',glyph:'殘',rare:true,color:'#e8eefc',
+    tagline:'守夜的人',
+    desc:'你習慣照顧別人，夜越深越清醒。你還記得裂縫降臨前的月亮，也願意替大家把那一點光留下來。',
+    moment:'有人在你懷裡流血。你只想讓血停下來。',
+    base:['發光照明','發出銀白冷光，像裂縫降臨前的月光'],
+    pool:[['解毒','解除毒素'],['治療','讓傷口癒合'],['灼光','光照灼傷怪物的異變組織'],['安眠','月光籠罩目標，讓牠沉沉睡去'],['光盾','銀光凝成護盾，擋下攻擊'],['月光箭','射出銀白光箭，專傷異變組織'],['銀月刃','月光凝成一把彎刃']],
+    traits:['銀白色冷光，像裂縫降臨前的月光','光照可以灼傷怪物的異變組織','治癒技能練到最強依然生命不可逆','夜晚效果較強'],
+    side:'白天易疲勞，夜晚精神好'},
+  feral:{name:'異化',glyph:'異',rare:true,color:'#e0466e',
+    tagline:'比怪物更懂怪物',
+    desc:'你靠本能活下來。餓了就吃，痛了就咬回去，身體永遠比腦子先動。有些人怕你，但沒有人想跟你為敵。',
+    moment:'牠咬住你的那一刻，你也長出了牙。',
+    base:['局部異變','身體一到兩處異變，可以隨意收放'],
+    pool:[['長出爪牙','長出利爪與尖牙'],['強化五感','視覺、聽覺、嗅覺大幅提升'],['力量暴增','短時間內力氣暴漲'],['快速癒合','傷口癒合得比常人快'],['鱗甲','皮膚長出鱗片，擋下刀刃與爪擊'],['骨刺','背部竄出骨刺，刺穿貼身的敵人'],['毒牙','咬擊帶毒，讓目標麻木'],['撕裂','異變的肢體直接撕開目標']],
+    traits:['只有身體局部異變，不會整個獸化','異變部位因人而異，手臂、腿、眼或背，每人固定一到兩處','特徵近似覺醒時接觸過的怪物，例如鱗片、利爪、豎瞳','可以隨意收放，解除後恢復原狀'],
+    side:'食量變大，容易餓'}
+};
+/* 每個選項：[文字, 主元素碼+副元素碼]，主 +2、副 +1。九種元素各當 6 次主、6 次副，每題同一元素只出現一次，機率相同。
+   M金 W水 F火 T雷 E地 A風 V虛空 L殘月 X異化 */
+const K={M:'metal',W:'water',F:'fire',T:'lightning',E:'earth',A:'wind',V:'void',L:'moon',X:'feral'};
+const QS=[
+  {s:['床頭燈還亮著。','這本《裂空的伊爾卡》你追了好幾個晚上，書頁邊角被你折得捲了起來。','你折起來的，多半是哪幾頁？'],o:[
+    ['主角一刀劈開怪物甲殼的那幾頁，讀得你手心發燙','FM'],
+    ['聚落從一片荒地，一磚一瓦蓋起來的那幾頁','EW'],
+    ['雙胞胎在小屋裡拌嘴，搶最後一塊餅的那幾頁','LX'],
+    ['有人提起裂縫的另一頭是什麼，話卻總說到一半的那幾頁','VA']]},
+  {s:['你闔上書，關了燈。','睡著以後，你一直往下墜。沒有風，沒有聲音，黑暗稠得像水，一點一點漫過你的口鼻。'],o:[
+    ['你拚命伸手去抓，卻什麼都抓不到。','XF'],
+    ['你不掙扎，等自己落到底。','WV'],
+    ['你抬起頭。很遠很遠的上方，有一道細細的光。','LA']]},
+  {s:['醒來的時候，你先聞到木頭和煙燻的味道。','屋頂很低，被子很重，枕頭上留著別人的氣味……這不是你的房間。'],o:[
+    ['你沒睜眼，屏住呼吸，聽屋子裡還有沒有別人。','TX'],
+    ['你掀開被子，赤腳踩上冰涼的木地板，先找門在哪裡。','AE'],
+    ['你的手在枕頭底下摸到一把短刀。你握住它，沒有出聲。','MW']]},
+  {s:['「讀者大大，早安呀～」一個聲音直接在你腦子裡響起。','下一秒，一片半透明的面板浮到眼前，邊角閃著微光。','你看向什麼，就會得到什麼的資料。','你最先看的是：'],o:[
+    ['讀者資料。至少得先弄清楚，讀者是誰。','WV'],
+    ['掛在牆上的那把刀，刀口磨得發亮。','MX'],
+    ['窗戶，夜風從那裡鑽進來，帶著你從沒聞過的味道。','AL'],
+    ['門，地板在震動，有腳步聲一步一步靠近。','TE']]},
+  {s:['門被推開了。','兩個男人一前一後走進來，個子高得要低頭才不會撞上門框。','他們長得一模一樣，打量你的眼神卻不一樣。'],o:[
+    ['你攥著被角，先開口：「這裡是哪裡？」','WE'],
+    ['你沒說話，在兩張臉之間來回地看，想找出哪裡不一樣。','TV'],
+    ['「謝謝你們。」不管怎樣，是他們讓你睡在這裡的。','LF'],
+    ['你先看了一眼他們腰間的刀，再看一眼離你最近的那扇窗。','AX']]},
+  {s:['「你叫什麼？從哪裡來？」','其中一個拉了張椅子，反著跨坐上去，下巴擱在椅背上看你。','另一個靠在門邊沒動，手一直沒離開刀柄。'],o:[
+    ['「我從另一個世界來的。」話一出口，你就後悔了。','FM'],
+    ['你只報了名字，其他的一個字也沒多說。','VT'],
+    ['「我不記得了。」你低聲說，「如果可以，能讓我在這裡待一陣子嗎？」','EL']]},
+  {s:['他們說，是在森林裡把你撿回來的。那時你倒在樹底下，怎麼叫都叫不醒。','你走到窗邊，推開窗。天上沒有月亮，只有一道裂縫橫在夜空裡。','和書裡寫的一模一樣。'],o:[
+    ['你看了很久，看到眼睛發酸，還是捨不得移開。','LW'],
+    ['你回過頭問他們，今年是裂縫降臨的第幾年。','TE'],
+    ['你忽然笑出聲來。都穿進書裡了，總得好好活一次。','FA'],
+    ['你把窗關上，背靠著牆，慢慢蹲了下去。','VM']]},
+  {s:['天亮以後，桌上擺了兩樣東西：一疊烤得金黃的麵根餅和一盤烤肉。','「怪物肉。」其中一個說，「異變的地方切掉了，能吃。」'],o:[
+    ['你等他們各吃了一口，才拿起自己那份。','TW'],
+    ['你問這是什麼怪物、在哪裡打到的，問到他們都笑了。','AL'],
+    ['你拿起一塊餅慢慢地嚼。很粗，很乾，卻是你吃過最實在的一頓。','EM']]},
+  {s:['他們要進森林打獵，你說你也要去。','走到林子深處，草叢猛地一晃，一頭背上長滿骨刺的野狼撲了出來，直直衝著你。','你手裡卻什麼都沒有。'],o:[
+    ['你抄起腳邊的粗樹枝，朝牠的眼睛捅過去。','XM'],
+    ['你轉身就往他們兩個的方向跑。','AL'],
+    ['你站著沒動，盯著牠，等牠先露出破綻。','WT'],
+    ['你抓起一把泥沙，狠狠丟在牠臉上。','EF']]},
+  {s:['回程時，你們繞去邊境聚落，拿獵物的皮和骨頭換結晶。','攤位前擠滿了人。你看見一個瘦得只剩骨頭的孩子，把手伸進了旁人的布袋。'],o:[
+    ['你想都沒想，一把扣住那隻手。','XM'],
+    ['你走過去，替他把東西塞回布袋，順勢擋在他身前。','EL'],
+    ['你什麼都沒說，只記下他往哪條巷子跑。','TV'],
+    ['你把剛換到的那顆灰結晶，悄悄塞進他手裡。','WF']]},
+  {s:['離開前，探索者協會的布告欄貼出一張新委託：東邊山谷冒出了一座裂隙。','「讀者大大～這座裂隙不大，很適合新手喔！」系統在你腦子裡說得很開心。','他們看完委託，決定去一趟。','其中一個回頭看你：「你要跟？」'],o:[
+    ['「要。」你答得比腦子還快。','FA'],
+    ['「我可以幫你們背東西、守行李。」','EW'],
+    ['「我看得到你們看不到的東西。」你沒說是什麼。','VT'],
+    ['你沒回答，從他們的行李裡抽出一把短刀，綁上自己的腰。','MX']]},
+  {s:['裂隙裡的怪物比森林裡兇，你們一路打一路退，最後被逼進一處岔口。','「你選。」其中一個喘著氣說。'],o:[
+    ['左邊。石壁上長滿光苔，綠瑩瑩地一路亮進深處。','LE'],
+    ['右邊。裡面傳來低沉的喘息聲，像有什麼東西在睡。','XF'],
+    ['中間。一片漆黑，冷風從裡面一陣一陣地吹出來。','VA']]},
+  {s:['通道盡頭是一座圓形的石廳。','首領從暗處站起來，比你見過的任何怪物都大，甲殼上滿是舊傷。','他們一左一右擋在你前面，頭也沒回：「待在後面。」'],o:[
+    ['你沒有待在後面。','XF'],
+    ['你繞著牆跑，引牠轉頭，替他們騰出空檔。','AT'],
+    ['你撿起地上的短刀，朝牠胸口那道舊傷擲過去。','ME'],
+    ['你退到牆邊，把他們丟下的背包抱在懷裡，替他們守著。','LV']]},
+  {s:['首領倒下以後，石廳裡只剩下你們的喘氣聲。','廳中央有一座石台，上面放著四樣東西。他們讓你挑。','「讀者大大，只能拿一件喔，拿了這裡就會塌～」系統小小聲地說。'],o:[
+    ['一盞提燈。燈芯燒著，像是從來沒有熄過。','FL'],
+    ['一枚貝殼。貼在耳邊，能聽見很遠很遠的地方。','XA'],
+    ['一個布袋。不管往裡面放多少東西，都裝不滿。','VW'],
+    ['一把刀。刃口沒有半點缺口，像是永遠不會鈍。','MT']]},
+  {s:['你的指尖碰到它的那一刻，石廳開始崩塌。','碎石從頭頂砸下來，有人抓住你的手臂往外拖。','你抬起頭，從崩開的岩縫裡，看見了那道裂縫。','它的光落在你身上。那一瞬間，你感覺到……'],o:[
+    ['冷。從骨頭裡往外透的冷，冷得你說不出話。','WV'],
+    ['燙。有什麼從心口燒起來，一路燒到指尖。','FT'],
+    ['重。全身的骨頭，像是變成了鐵。','MX']]}
+];
+QS.forEach(q=>{q.o=q.o.map(([t,c])=>[t,K[c[0]],K[c[1]]])});
+function score(picks){
+  const s={};ORDER.forEach(k=>{s[k]=0});
+  picks.forEach(o=>{s[o[1]]+=2;s[o[2]]+=1});
+  return s;
+}
+/* 穿越者必定雙元素：分數最高的兩種同時覺醒，同分隨機 */
+function analyze(s,rand){
+  const keys=ORDER.slice();
+  for(let i=keys.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[keys[i],keys[j]]=[keys[j],keys[i]]}
+  keys.sort((x,y)=>s[y]-s[x]);
+  const a=keys[0],b=keys[1];
+  return{dual:true,a,b};
+}
+function drawSkills(k,n,rand){
+  const p=EL[k].pool.slice();
+  for(let i=p.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[p[i],p[j]]=[p[j],p[i]]}
+  return p.slice(0,n);
+}
+/*END DATA*/
+
+(function(){
+  const $=id=>document.getElementById(id);
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const root=document.documentElement;
+  const DEFAULT_RIFT='#d9d3ff', DEFAULT_CORE='#fbfaff';
+  const F_DISPLAY='"Chiron Sung HK","Noto Serif TC","Songti TC","PMingLiU",serif';
+  const F_BODY='"Chiron Hei HK","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+
+  /* ---------- rift geometry, shared by sky and result card ---------- */
+  function hex(h){h=h.replace('#','');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]}
+  function rgb(a,al){const c=a.map(Math.round).join(',');return al==null?`rgb(${c})`:`rgba(${c},${al})`}
+  function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  function makeRift(cx,top,len,seed){
+    const rr=rng(seed),N=18,maxW=Math.max(6,len*.07);
+    const spine=[],L=[],Rt=[],j=len/180;
+    for(let i=0;i<=N;i++){
+      const t=i/N,y=top+len*t;
+      const jit=(i===0||i===N)?0:(rr()-.5)*len*.09;
+      const x=cx+(t-.5)*len*.28+jit;
+      const w=maxW*Math.pow(Math.sin(Math.PI*t),.9);
+      spine.push([x,y,w]);
+      L.push([x-w*(.45+rr()*.5),y+(rr()-.5)*3*j]);
+      Rt.push([x+w*(.45+rr()*.5),y+(rr()-.5)*3*j]);
+    }
+    const branches=[];
+    [4,8,11,14].forEach((i,bi)=>{
+      let [px,py]=spine[i];const dir=bi%2?1:-1;const seg=[[px,py]];const bl=len*(.1+rr()*.1);
+      for(let s=1;s<=3;s++){px+=dir*bl/3*(.7+rr()*.6);py+=(rr()-.3)*bl/3*.7;seg.push([px,py])}
+      branches.push(seg);
+    });
+    return{poly:L.concat(Rt.reverse()),spine,branches,cx,cy:top+len/2,len,k:j};
+  }
+  function drawRift(c,R,col,core,pulse){
+    const k=R.k,cs=rgb(col);
+    const g=c.createRadialGradient(R.cx,R.cy,0,R.cx,R.cy,R.len*1.1);
+    g.addColorStop(0,rgb(col,.2*pulse));g.addColorStop(1,rgb(col,0));
+    c.fillStyle=g;c.fillRect(R.cx-R.len*1.2,R.cy-R.len*1.2,R.len*2.4,R.len*2.4);
+    c.save();
+    c.lineCap='round';c.lineJoin='round';
+    c.shadowColor=cs;c.shadowBlur=10*pulse*k;c.strokeStyle=cs;c.lineWidth=1.2*k;
+    for(const b of R.branches){c.beginPath();b.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke()}
+    c.beginPath();R.poly.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.closePath();
+    c.fillStyle=cs;c.shadowBlur=36*pulse*k;c.fill();c.shadowBlur=12*k;c.fill();
+    const ks=rgb(core),dark=(core[0]+core[1]+core[2])<120;
+    c.shadowBlur=dark?0:6*k;c.shadowColor=ks;c.strokeStyle=ks;
+    for(let i=1;i<R.spine.length;i++){
+      const a=R.spine[i-1],b=R.spine[i];
+      c.lineWidth=Math.max(.6,(a[2]+b[2])/2*(dark?.6:.38));
+      c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();
+    }
+    c.restore();
+  }
+
+  /* ---------- sky ---------- */
+  const sky=$('sky'),ctx=sky.getContext('2d');
+  let W=0,H=0,stars=[],R=null,running=false,rate=.06;
+  let cur=hex(DEFAULT_RIFT),tgt=cur.slice(),core=hex(DEFAULT_CORE),coreT=core.slice();
+  function buildSky(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    W=window.innerWidth;H=window.innerHeight;
+    sky.width=Math.round(W*dpr);sky.height=Math.round(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const r=rng(20),n=Math.min(420,Math.round(W*H/4200));
+    stars=[];
+    for(let i=0;i<n;i++)stars.push({x:r()*W,y:r()*H,s:r()*1.3+.3,p:r()*6.283,a:r()*.55+.2});
+    const gap=document.querySelector('.sky-gap').getBoundingClientRect();
+    const top=gap.top+window.scrollY+14,bot=gap.top+window.scrollY+gap.height-22;
+    const len=Math.max(90,bot-top);
+    R=makeRift(W/2+Math.min(W*.08,40),top,len,11);
+    R.k=1;
+  }
+  function draw(t){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#dfe4ff';
+    for(const s of stars){ctx.globalAlpha=reduce?s.a:s.a*(.6+.4*Math.sin(t*.0013+s.p));ctx.fillRect(s.x,s.y,s.s,s.s)}
+    ctx.globalAlpha=1;
+    if(R)drawRift(ctx,R,cur,core,reduce?1:1+.12*Math.sin(t*.0011));
+  }
+  function frame(t){
+    let moving=false;
+    for(let i=0;i<3;i++){
+      const d=tgt[i]-cur[i];if(Math.abs(d)>.5){cur[i]+=d*rate;moving=true}else cur[i]=tgt[i];
+      const e=coreT[i]-core[i];if(Math.abs(e)>.5){core[i]+=e*rate;moving=true}else core[i]=coreT[i];
+    }
+    draw(t);
+    if(!reduce||moving)requestAnimationFrame(frame);else running=false;
+  }
+  function kick(){if(!running){running=true;requestAnimationFrame(frame)}}
+  function setRift(color,coreColor,r){
+    tgt=hex(color);coreT=hex(coreColor||DEFAULT_CORE);rate=r||.06;
+    if(reduce){cur=tgt.slice();core=coreT.slice()}
+    kick();
+  }
+  buildSky();kick();
+  let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{buildSky();kick()},150)});
+
+  /* ---------- shared helpers ---------- */
+  const screens={start:$('start'),quiz:$('quiz'),result:$('result')};
+  const pad=n=>String(n).padStart(2,'0');
+  function animate(el){if(reduce)return;el.classList.remove('enter');void el.offsetWidth;el.classList.add('enter')}
+  function show(name){
+    Object.keys(screens).forEach(k=>{screens[k].hidden=k!==name});
+    animate(screens[name]);window.scrollTo(0,0);
+  }
+  function mk(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+
+  /* ---------- intro ---------- */
+  const lines=Array.from(document.querySelectorAll('#intro .line'));
+  let li=0,introDone=false,introTimer=null,fx=[];
+  function clearFx(){fx.forEach(clearTimeout);fx=[]}
+  function lineFx(i){
+    clearFx();
+    if(i===2){['#4fb38a','#e2c26a','#d98b3a','#959bb0'].forEach((c,j)=>fx.push(setTimeout(()=>setRift(c,null,.12),j*600)))}
+    else if(i===3)setRift('#e0384a','#ffe9ea',.07);
+    else if(i===4)setRift(DEFAULT_RIFT,null,.03);
+  }
+  function nextLine(){
+    if(introDone)return;
+    clearTimeout(introTimer);
+    if(li<lines.length){
+      lines[li].classList.add('on');lineFx(li);li++;
+      introTimer=setTimeout(nextLine,li===lines.length?1500:(li===3?3000:2300));
+    }else finishIntro();
+  }
+  function finishIntro(){
+    if(introDone)return;
+    introDone=true;clearTimeout(introTimer);clearFx();
+    lines.forEach(l=>l.classList.add('on'));
+    setRift(DEFAULT_RIFT,null,.04);
+    $('introFoot').hidden=true;$('after').hidden=false;
+    screens.start.classList.remove('playing');
+    animate($('after'));
+  }
+  $('skipBtn').addEventListener('click',e=>{e.stopPropagation();finishIntro()});
+  screens.start.addEventListener('click',e=>{if(!introDone&&!e.target.closest('button'))nextLine()});
+  if(reduce){finishIntro()}else{screens.start.classList.add('playing');introTimer=setTimeout(nextLine,500)}
+
+  /* ---------- quiz ---------- */
+  let order=[],answers=[],idx=0,lock=false,res=null,shareText='',downloads=null;
+  if(window.claude&&typeof window.claude.use==='function'){
+    window.claude.use('downloads').then(n=>{downloads=n}).catch(()=>{});
+  }
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+  function begin(){
+    order=QS.map(q=>shuffle(q.o.map((_,i)=>i)));
+    answers=new Array(QS.length).fill(null);idx=0;
+    root.style.setProperty('--el',DEFAULT_RIFT);
+    setRift(DEFAULT_RIFT,DEFAULT_CORE);
+    $('cardWrap').hidden=true;$('cardImg').removeAttribute('src');
+    renderQ();show('quiz');
+  }
+  let typers=[];
+  function stopTyping(){typers.forEach(t=>{clearTimeout(t);clearInterval(t)});typers=[]}
+  function typeInto(el,text,delay){
+    el.dataset.full=text;
+    if(reduce){el.textContent=text;return}
+    el.textContent='';el.classList.add('typing');
+    typers.push(setTimeout(()=>{
+      let i=0;const iv=setInterval(()=>{i++;el.textContent=text.slice(0,i);if(i>=text.length){clearInterval(iv);el.classList.remove('typing')}},45);
+      typers.push(iv);
+    },delay||250));
+  }
+  function sysBox(text,delay){
+    const b=mk('div','sysbox pop'),say=mk('div','say');
+    b.append(mk('div','who','系統'),say);typeInto(say,text,(delay||0)+300);return b;
+  }
+  function renderQ(){
+    const q=QS[idx];
+    $('qnum').textContent=pad(idx+1)+' / '+pad(QS.length);
+    $('backBtn').disabled=idx===0;
+    stopTyping();
+    const sc=$('qtext');sc.textContent='';let delay=0;
+    q.s.forEach((l,i)=>{
+      const last=i===q.s.length-1,m=l.match(/^「(讀者大大[^」]*)」(.*)$/);
+      if(m){sc.appendChild(sysBox(m[1],delay));delay+=m[1].length*45+200;if(m[2])sc.appendChild(mk('p',last?'last':'',m[2]))}
+      else sc.appendChild(mk('p',last?'last':'',l));
+    });
+    const prog=$('progress');prog.textContent='';
+    for(let i=0;i<QS.length;i++)prog.appendChild(mk('i',i<idx?'done':i===idx?'now':''));
+    const box=$('options');box.textContent='';
+    order[idx].forEach((oi,n)=>{
+      const b=mk('button','opt'+(answers[idx]===oi?' chosen':''));
+      b.type='button';b.id='opt-'+idx+'-'+oi;
+      b.append(mk('span','k',n+1),mk('span','t',q.o[oi][0]));
+      b.addEventListener('click',()=>choose(oi,b));
+      box.appendChild(b);
+    });
+    lock=false;
+  }
+  function choose(oi,btn){
+    if(lock)return;lock=true;
+    answers[idx]=oi;
+    Array.from($('options').children).forEach(c=>c.classList.toggle('chosen',c===btn));
+    setTimeout(()=>{
+      if(idx<QS.length-1){idx++;renderQ();animate($('qpanel'))}
+      else finish();
+    },reduce?80:240);
+  }
+  function finish(){
+    const s=score(answers.map((oi,i)=>QS[i].o[oi]));
+    const an=analyze(s,Math.random);
+    an.s=s;
+    an.skillsA=drawSkills(an.a,3,Math.random);
+    if(an.dual)an.skillsB=drawSkills(an.b,3,Math.random);
+    res=an;renderResult(an);show('result');
+  }
+
+  /* ---------- result ---------- */
+  function glyphEl(k){
+    const e=EL[k],g=mk('div','glyph'+(k==='void'?' void':''),e.glyph);
+    g.style.setProperty('--gc',e.color);g.style.setProperty('--gf',e.glyphFill||e.color);
+    return g;
+  }
+  function tagEl(e){return mk('span','tag'+(e.rare?' rare':''),e.rare?'稀有元素':'常見元素')}
+  function section(k,skills,withHead){
+    const e=EL[k],sec=mk('div','el-sec');
+    sec.style.setProperty('--gc',e.color);
+    if(withHead){
+      const h=mk('div','el-sec-head');
+      h.append(mk('span','dot'),mk('strong',null,e.name),tagEl(e),mk('span','sub',e.tagline));
+      h.firstChild.style.setProperty('--c',e.color);
+      sec.appendChild(h);
+    }
+    sec.appendChild(mk('p','desc',e.desc));
+    const ab=mk('div','block');ab.appendChild(mk('h3',null,'能力'));
+    const ul=mk('ul','skill-list');
+    const add=(sk,cls)=>{const li=mk('li',cls);li.append(mk('span','sk-name',sk[0]),mk('span','sk-desc',sk[1]));ul.appendChild(li)};
+    ul.appendChild(mk('li','sk-sep','基本能力'));
+    add(e.base,'sk-base');
+    ul.appendChild(mk('li','sk-sep','初始技能'));
+    skills.forEach(sk=>add(sk,''));
+    ab.appendChild(ul);sec.appendChild(ab);
+    if(e.traits){const b=mk('div','block');b.appendChild(mk('h3',null,'特性'));const t=mk('ul','traits');e.traits.forEach(x=>t.appendChild(mk('li',null,x)));b.appendChild(t);sec.appendChild(b)}
+    if(e.side){const b=mk('div','block');b.append(mk('h3',null,'副作用'),mk('p',null,e.side));sec.appendChild(b)}
+    return sec;
+  }
+  function renderResult(an){
+    const A=EL[an.a],B=EL[an.b];
+    root.style.setProperty('--el',A.color);
+    setRift(A.color,an.dual?(B.core||B.color):(A.core||DEFAULT_CORE));
+    const gl=$('rGlyphs');gl.textContent='';gl.className='glyphs'+(an.dual?' dual':'');
+    gl.appendChild(glyphEl(an.a));if(an.dual)gl.appendChild(glyphEl(an.b));
+    const tag=$('rTag');
+    if(an.dual){
+      $('rName').textContent=A.name+' × '+B.name;
+      tag.textContent='雙元素覺醒';tag.className='tag rare';
+      $('rTagline').textContent='兩種力量，同時在你體內醒來';
+      stopTyping();typeInto($('rMoment'),'哇！讀者大大一口氣覺醒了【'+A.name+'】和【'+B.name+'】兩種元素！這個世界可是很少人做得到的喔～',700);
+    }else{
+      $('rName').textContent=A.name;
+      tag.textContent=A.rare?'稀有元素':'常見元素';tag.className='tag'+(A.rare?' rare':'');
+      $('rTagline').textContent=A.tagline;
+      stopTyping();typeInto($('rMoment'),'恭喜讀者大大覺醒【'+A.name+'】！'+(A.rare?'是稀有元素喔～':'好好鍛鍊，會很強的喔～'),700);
+    }
+    const sec=$('rSecond');sec.textContent='';sec.hidden=an.dual;
+    if(!an.dual){
+      sec.style.setProperty('--gc',B.color);
+      const top=mk('div','second-top');top.append(mk('span','lbl','可能覺醒的第二元素'),mk('span','pct',an.pct+'%'));
+      const nm=mk('div','second-name');const d=mk('span','dot');d.style.setProperty('--c',B.color);
+      nm.append(d,document.createTextNode(B.name),tagEl(B));
+      const m=mk('div','meter');const bar=mk('i');bar.style.width=an.pct+'%';m.appendChild(bar);
+      sec.append(top,nm,m,mk('p','note','系統偷偷告訴你：多數人一生只有一種元素，讀者大大之後還有 '+an.pct+'% 機率覺醒【'+B.name+'】喔～'));
+    }
+    const body=$('rBody');body.textContent='';
+    body.appendChild(section(an.a,an.skillsA,an.dual));
+    if(an.dual)body.appendChild(section(an.b,an.skillsB,true));
+    const s=an.s;
+    const list=ORDER.slice().sort((x,y)=>{const px=x===an.a?2:(an.dual&&x===an.b)?1:0,py=y===an.a?2:(an.dual&&y===an.b)?1:0;return py-px||s[y]-s[x]});
+    const rs=$('rReso');rs.textContent='';
+    list.forEach(key=>{
+      const li=mk('li',(key===an.a||(an.dual&&key===an.b))?'me':'');
+      const cells=mk('span','cells');cells.style.setProperty('--c',EL[key].color);
+      for(let i=0;i<24;i++)cells.appendChild(mk('i',i<s[key]?'on':''));
+      li.append(mk('span',null,EL[key].name),cells,mk('span','n',s[key]));
+      rs.appendChild(li);
+    });
+    const nm=x=>x.map(k=>k[0]).join('・');
+    if(an.dual){
+      shareText='我在裂縫下覺醒了【'+A.name+'×'+B.name+'】雙元素\n'+A.name+'：'+A.base[0]+'・'+nm(an.skillsA)+'\n'+B.name+'：'+B.base[0]+'・'+nm(an.skillsB)+'\n\n《裂空的伊爾卡》元素測驗';
+    }else{
+      shareText='我在裂縫下覺醒了【'+A.name+'】'+(A.rare?'（稀有元素）':'')+'\n'+A.tagline+'\n基本能力：'+A.base[0]+'\n初始技能：'+nm(an.skillsA)+'\n第二元素：'+B.name+'（'+an.pct+'%）\n\n《裂空的伊爾卡》元素測驗';
+    }
+    updateSheet();
+  }
+
+  /* ---------- result long image ---------- */
+  function wrapText(x,text,maxW){
+    const out=[];let line='';
+    for(const ch of text){
+      const t=line+ch;
+      if(line&&x.measureText(t).width>maxW){
+        if('，。、！？：；」』…～）'.indexOf(ch)>=0){line=t;continue}
+        out.push(line);line=ch;
+      }else line=t;
+    }
+    if(line)out.push(line);
+    return out;
+  }
+  function wrapEven(x,text,maxW){
+    const n=wrapText(x,text,maxW).length;
+    if(n<2)return wrapText(x,text,maxW);
+    let lo=maxW*.4,hi=maxW;
+    for(let i=0;i<14;i++){const mid=(lo+hi)/2;if(wrapText(x,text,mid).length>n)lo=mid;else hi=mid}
+    return wrapText(x,text,hi);
+  }
+  function rrect(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.lineTo(X+w-r,Y);x.quadraticCurveTo(X+w,Y,X+w,Y+r);x.lineTo(X+w,Y+h-r);x.quadraticCurveTo(X+w,Y+h,X+w-r,Y+h);x.lineTo(X+r,Y+h);x.quadraticCurveTo(X,Y+h,X,Y+h-r);x.lineTo(X,Y+r);x.quadraticCurveTo(X,Y,X+r,Y);x.closePath()}
+  function layoutCard(x,an,CW,H){
+    const A=EL[an.a],B=EL[an.b],L=90,IW=CW-L*2;
+    const sp=v=>{if('letterSpacing' in x)x.letterSpacing=v};
+    const T={ink:'#ebe6dc',dim:'#a3a5b4',faint:'#6d728a',line:'#2a3149',gold:'#dcb76e',rift:'#d9d3ff'};
+    if(H){
+      x.fillStyle='#0a0c13';x.fillRect(0,0,CW,H);
+      const r=rng(5);x.fillStyle='#dfe4ff';
+      const n=Math.round(H/4.5);
+      for(let i=0;i<n;i++){x.globalAlpha=r()*.5+.12;const s=r()*2.6+.6;x.fillRect(r()*CW,r()*H,s,s)}
+      x.globalAlpha=1;
+      drawRift(x,makeRift(CW/2+40,60,290,11),hex(A.color),hex(an.dual?(B.core||B.color):(A.core||DEFAULT_CORE)),1);
+    }
+    x.textAlign='center';x.textBaseline='alphabetic';
+    x.font='500 30px '+F_BODY;x.fillStyle=T.dim;sp('10px');
+    x.fillText('【系統】覺醒判定完成',CW/2,440);sp('0px');
+    const glyph=(e,k,cx,size)=>{
+      x.font='900 '+size+'px '+F_DISPLAY;
+      x.save();x.shadowColor=e.color;x.shadowBlur=60;x.fillStyle=e.glyphFill||e.color;
+      x.fillText(e.glyph,cx,690);x.shadowBlur=20;x.fillText(e.glyph,cx,690);x.restore();
+      if(k==='void'){x.lineWidth=3;x.strokeStyle=e.color;x.strokeText(e.glyph,cx,690)}
+    };
+    if(an.dual){glyph(A,an.a,CW/2-115,200);glyph(B,an.b,CW/2+115,200)}else glyph(A,an.a,CW/2,230);
+    x.font='900 78px '+F_DISPLAY;x.fillStyle=T.ink;sp('8px');
+    x.fillText(an.dual?A.name+' × '+B.name:A.name,CW/2,810);sp('0px');
+    const tagText=an.dual?'雙元素覺醒':(A.rare?'稀有元素':'常見元素'),rare=an.dual||A.rare;
+    x.font='500 28px '+F_BODY;sp('6px');
+    const tw=x.measureText(tagText).width+40;
+    x.strokeStyle=rare?T.gold:'#3a4260';x.lineWidth=2;x.strokeRect(CW/2-tw/2,842,tw,50);
+    x.fillStyle=rare?T.gold:T.dim;x.fillText(tagText,CW/2+3,877);sp('0px');
+    x.font='500 38px '+F_BODY;x.fillStyle=T.ink;
+    x.fillText(an.dual?'兩種力量，同時在你體內醒來':A.tagline,CW/2,965);
+    let y=1030;
+    x.textAlign='left';
+
+    // system bubble
+    const sysMsg=$('rMoment').dataset.full||'';
+    x.font='500 32px '+F_BODY;
+    const sl=wrapEven(x,sysMsg,IW-48);
+    const bh=70+sl.length*50+20;
+    x.save();rrect(x,L,y,IW,bh,14);x.fillStyle='rgba(217,211,255,.08)';x.fill();
+    x.shadowColor='rgba(217,211,255,.35)';x.shadowBlur=24;x.strokeStyle='rgba(217,211,255,.6)';x.lineWidth=2;x.stroke();x.restore();
+    x.fillStyle=T.rift;x.beginPath();x.arc(L+30,y+44,6,0,6.283);x.fill();
+    x.font='500 24px '+F_BODY;sp('6px');x.fillText('系統',L+48,y+53);sp('0px');
+    x.font='500 32px '+F_BODY;x.fillStyle='#ffffff';
+    sl.forEach((l,i)=>x.fillText(l,L+24,y+110+i*50));
+    y+=bh+40;
+
+    // second element
+    if(!an.dual){
+      const bh2=200;
+      rrect(x,L,y,IW,bh2,10);x.fillStyle='#121624';x.fill();x.strokeStyle=T.line;x.lineWidth=2;x.stroke();
+      x.font='500 26px '+F_BODY;x.fillStyle=T.dim;sp('6px');x.fillText('可能覺醒的第二元素',L+30,y+56);sp('0px');
+      x.textAlign='right';x.font='500 48px '+F_BODY;x.fillStyle=B.color;x.fillText(an.pct+'%',L+IW-30,y+64);x.textAlign='left';
+      x.fillStyle=B.color;x.beginPath();x.arc(L+40,y+112,8,0,6.283);x.fill();
+      x.font='700 40px '+F_DISPLAY;x.fillStyle=T.ink;x.fillText(B.name,L+62,y+126);
+      const nw=x.measureText(B.name).width;
+      x.font='500 22px '+F_BODY;sp('4px');const t2=B.rare?'稀有元素':'常見元素';const w2=x.measureText(t2).width+28;
+      x.strokeStyle=B.rare?T.gold:'#3a4260';x.strokeRect(L+82+nw,y+96,w2,38);x.fillStyle=B.rare?T.gold:T.dim;x.fillText(t2,L+96+nw,y+123);sp('0px');
+      x.fillStyle='#1b2134';x.fillRect(L+30,y+156,IW-60,10);x.fillStyle=B.color;x.fillRect(L+30,y+156,(IW-60)*an.pct/100,10);
+      y+=bh2+50;
+    }
+
+    const heading=(t)=>{x.strokeStyle=T.line;x.lineWidth=2;x.beginPath();x.moveTo(L,y);x.lineTo(L+IW,y);x.stroke();y+=56;x.font='500 26px '+F_BODY;x.fillStyle=T.dim;sp('10px');x.fillText(t,L,y);sp('0px');y+=30};
+    const para=(t,size,color,lh)=>{x.font='400 '+size+'px '+F_BODY;x.fillStyle=color;wrapEven(x,t,IW).forEach(l=>{y+=lh;x.fillText(l,L,y)});};
+    const section=(k,skills,head)=>{
+      const e=EL[k];
+      if(head){
+        y+=20;x.fillStyle=e.color;x.beginPath();x.arc(L+10,y+28,9,0,6.283);x.fill();
+        x.font='900 48px '+F_DISPLAY;x.fillStyle=T.ink;x.fillText(e.name,L+34,y+46);
+        const nw=x.measureText(e.name).width;
+        x.font='500 22px '+F_BODY;sp('4px');const t=e.rare?'稀有元素':'常見元素';const w=x.measureText(t).width+28;
+        x.strokeStyle=e.rare?T.gold:'#3a4260';x.lineWidth=2;x.strokeRect(L+54+nw,y+14,w,38);x.fillStyle=e.rare?T.gold:T.dim;x.fillText(t,L+68+nw,y+41);sp('0px');
+        y+=60;para(e.tagline,30,T.dim,46);y+=10;
+      }
+      para(e.desc,31,T.ink,52);y+=40;
+      heading('能力');
+      const sub=t=>{y+=30;x.font='500 22px '+F_BODY;x.fillStyle=T.faint;sp('8px');x.fillText(t,L,y);sp('0px');y+=14};
+      const row=(sk,base)=>{
+        x.font='500 30px '+F_BODY;const w=x.measureText(sk[0]).width+36;
+        const top=y+14;
+        if(base){x.fillStyle=rgb(hex(e.color),.18);x.fillRect(L,top,w,52)}
+        x.strokeStyle=rgb(hex(e.color),.75);x.lineWidth=2;x.strokeRect(L,top,w,52);
+        x.fillStyle=T.ink;x.fillText(sk[0],L+18,top+37);
+        const DX=L+250;x.font='400 28px '+F_BODY;x.fillStyle=T.dim;
+        const ls=wrapEven(x,sk[1],IW-250);
+        ls.forEach((l,i)=>x.fillText(l,DX,top+37+i*44));
+        y=top+Math.max(52,(ls.length-1)*44+52)+12;
+      };
+      sub('基本能力');row(e.base,true);
+      sub('初始技能');skills.forEach(sk=>row(sk,false));
+      y+=40;
+      if(e.traits){
+        heading('特性');
+        x.font='400 29px '+F_BODY;
+        e.traits.forEach(t=>{
+          const ls=wrapText(x,t,IW-34);
+          ls.forEach((l,i)=>{y+=46;if(i===0){x.fillStyle=e.color;x.beginPath();x.arc(L+8,y-10,5,0,6.283);x.fill()}x.fillStyle=T.ink;x.fillText(l,L+30,y)});
+          y+=4;
+        });
+        y+=40;
+      }
+      if(e.side){heading('副作用');para(e.side,29,T.ink,46);y+=40}
+    };
+    section(an.a,an.skillsA,an.dual);
+    if(an.dual){y+=10;section(an.b,an.skillsB,true)}
+
+    // resonance
+    heading('元素共鳴');y+=10;
+    const s=an.s;
+    const list=ORDER.slice().sort((p,q)=>{const pp=p===an.a?2:(an.dual&&p===an.b)?1:0,pq=q===an.a?2:(an.dual&&q===an.b)?1:0;return pq-pp||s[q]-s[p]});
+    const cellsX=L+120,cellsW=IW-120-70,cw=(cellsW-23*4)/24;
+    list.forEach(k=>{
+      const me=k===an.a||(an.dual&&k===an.b);
+      y+=52;
+      x.font=(me?'700 ':'400 ')+'28px '+F_BODY;x.fillStyle=me?T.ink:T.dim;x.fillText(EL[k].name,L,y);
+      for(let i=0;i<24;i++){
+        x.fillStyle=i<s[k]?EL[k].color:'#1b2134';x.globalAlpha=(i<s[k]&&!me)?.55:1;
+        x.fillRect(cellsX+i*(cw+4),y-20,cw,14);
+      }
+      x.globalAlpha=1;x.textAlign='right';x.font='500 24px '+F_BODY;x.fillStyle=me?T.ink:T.dim;x.fillText(String(s[k]),L+IW,y);x.textAlign='left';
+    });
+    y+=70;
+    x.font='400 24px '+F_BODY;x.fillStyle=T.faint;
+    wrapText(x,'元素只作用於自身與周邊，使用會消耗精力。強度因人而異，可以鍛鍊。',IW).forEach(l=>{y+=38;x.fillText(l,L,y)});
+    y+=90;
+    x.textAlign='center';x.font='500 28px '+F_BODY;x.fillStyle=T.faint;sp('6px');
+    x.fillText('《裂空的伊爾卡》元素測驗',CW/2,y);sp('0px');
+    return y+80;
+  }
+  async function makeCard(an){
+    const all=[an.a,an.b].map(k=>{const e=EL[k];return e.name+e.glyph+e.tagline+e.desc+e.base.join('')+e.pool.flat().join('')+(e.traits||[]).join('')+(e.side||'')}).join('')
+      +ORDER.map(k=>EL[k].name).join('')+($('rMoment').dataset.full||'')+'【系統】覺醒判定完成雙元素稀有常見可能的第二能力基本初始技能特性副作用元素共鳴《裂空的伊爾卡》測驗兩種力量同時在你體內醒來0123456789%×';
+    try{await Promise.all([document.fonts.load('900 200px '+F_DISPLAY,all),document.fonts.load('700 40px '+F_DISPLAY,all),document.fonts.load('400 30px '+F_BODY,all),document.fonts.load('500 30px '+F_BODY,all),document.fonts.load('700 30px '+F_BODY,all)])}catch(e){}
+    const CW=1080;
+    const m=document.createElement('canvas');m.width=CW;m.height=10;
+    const H=Math.ceil(layoutCard(m.getContext('2d'),an,CW,0));
+    const c=document.createElement('canvas');c.width=CW;c.height=H;
+    layoutCard(c.getContext('2d'),an,CW,H);
+    return c;
+  }
+
+  let toastT;
+  function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2000)}
+  function showInline(c,msg){
+    $('cardImg').src=c.toDataURL('image/png');$('cardNote').textContent=msg;$('cardWrap').hidden=false;
+    $('cardWrap').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+  }
+  $('saveBtn').addEventListener('click',async()=>{
+    if(!res)return;
+    const btn=$('saveBtn');btn.disabled=true;btn.textContent='製作圖片中⋯';
+    const done=()=>{btn.disabled=false;btn.textContent='儲存結果圖'};
+    let c;
+    try{c=await makeCard(res)}catch(e){done();toast('圖片沒有做成，請再按一次');return}
+    if(!downloads){
+      c.toBlob(blob=>{
+        done();
+        if(!blob){showInline(c,'請長按圖片儲存。');return}
+        const url=URL.createObjectURL(blob);
+        const link=document.createElement('a');
+        const nm=res.dual?EL[res.a].name+'與'+EL[res.b].name:EL[res.a].name;
+        link.href=url;link.download='伊爾卡元素測驗_'+nm+'.png';
+        document.body.appendChild(link);link.click();link.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),60000);
+        showInline(c,'如果沒有自動下載，請長按或右鍵點圖片儲存。');
+      },'image/png');
+      return;
+    }
+    c.toBlob(async blob=>{
+      if(!blob){done();showInline(c,'這裡沒辦法直接存檔，請長按圖片，選「加入照片」。');return}
+      const nm=res.dual?EL[res.a].name+'與'+EL[res.b].name:EL[res.a].name;
+      try{await downloads.save({filename:'伊爾卡元素測驗_'+nm+'.png',data:blob});done();toast('已存好結果圖')}
+      catch(err){done();if(err&&err.code==='declined')return;if(err&&err.code==='rate_limited'){toast('請稍等一下再按');return}showInline(c,'這裡沒辦法直接存檔，請長按圖片，選「加入照片」。')}
+    },'image/png');
+  });
+  const FIELDS=[['fName','名字'],['fGender','性別'],['fAge','年齡'],['fBefore','穿越前'],['fLook','外貌'],['fPersona','性格']];
+  function sheetText(){
+    if(!res)return '';
+    const out=['【讀者資料】'];
+    FIELDS.forEach(([id,lb])=>out.push(lb+'：'+$(id).value.trim().replace(/\n+/g,'，')));
+    const A=EL[res.a],B=EL[res.b];
+    out.push('身分：穿越者（系統綁定）');
+    out.push('元素：'+A.name+' × '+B.name);
+    out.push('基本能力：'+A.base[0]+'、'+B.base[0]);
+    out.push('初始技能：');
+    res.skillsA.concat(res.skillsB).forEach(sk=>out.push('・'+sk[0]+'｜'+sk[1]));
+    [A,B].forEach(e=>{
+      if(e.traits){out.push('特性（'+e.name+'）：');e.traits.forEach(t=>out.push('・'+t))}
+      if(e.side)out.push('副作用（'+e.name+'）：'+e.side);
+    });
+    return out.join('\n');
+  }
+  function updateSheet(){$('sheetText').value=sheetText()}
+  FIELDS.forEach(([id])=>$(id).addEventListener('input',updateSheet));
+  $('jumpBtn').addEventListener('click',()=>$('sheet').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'}));
+  $('copyBtn').addEventListener('click',()=>{
+    const text=sheetText();
+    const fb=()=>{const ta=$('sheetText');ta.focus();ta.select();$('copyHint').textContent='沒有複製成功，已幫你選取預覽的文字，請長按自行複製。'};
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>{toast('已複製人設表格');$('copyHint').textContent='已複製！貼到角色卡的人設欄就好。'},fb);
+      else fb();
+    }catch(err){fb()}
+  });
+  $('startBtn').addEventListener('click',begin);
+  $('againBtn').addEventListener('click',begin);
+  $('backBtn').addEventListener('click',()=>{if(idx>0&&!lock){idx--;renderQ();animate($('qpanel'))}});
+})();
+</script>
+
+</body>
+</html>
