@@ -201,6 +201,11 @@ button:focus-visible{outline:2px solid var(--rift);outline-offset:3px}
 .btn.big{width:100%;padding:16px 24px;font-size:18px;font-weight:700;background:var(--gold);border-color:var(--gold);color:#1a1408}
 .btn.big:hover{background:#ecd39a}
 .sheet-hint{margin:0;font-size:13.5px;color:var(--ink-dim);text-align:center}
+.play{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:8px;padding-top:20px;border-top:1px dashed rgba(220,183,110,.4)}
+.btn.play-link{display:block;box-sizing:border-box;text-align:center;text-decoration:none;background:var(--rift);border-color:var(--rift);color:#1a1530;box-shadow:0 0 22px rgba(217,211,255,.35)}
+.btn.play-link:hover{background:#ece8ff}
+.follow{font-size:14px;letter-spacing:.08em;color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(220,183,110,.5);padding-bottom:2px}
+.follow:hover{color:#ecd39a}
 #result{gap:24px}
 @media (max-width:380px){.fields{grid-template-columns:1fr}}
 @media (prefers-reduced-motion: reduce){
@@ -333,6 +338,11 @@ html:not([lang="zh-Hant"]) .res-name h2{font-size:clamp(26px,7vw,36px)}
       <textarea class="preview" id="sheetText" readonly aria-label="讀者資料表預覽"></textarea>
       <button class="btn big" id="copyBtn" type="button">複製人設表格</button>
       <p class="sheet-hint" id="copyHint">沒填的欄位會留空，貼上後也能再改。</p>
+      <div class="play">
+        <p class="sheet-hint">把人設貼進角色卡，故事就開始囉！</p>
+        <a class="btn big play-link" href="https://caveduck.io/zh-hant/share/characters/8e3fc32b-c836-4e5d-b0be-a2ba0389de14?rc=yXLnVAcb8q&amp;_share_hash=" target="_blank" rel="noopener">前往遊玩《裂空的伊爾卡》</a>
+        <a class="follow" href="https://www.threads.com/@musun.q3q" target="_blank" rel="noopener">追蹤作者 MUSUN 的 Threads</a>
+      </div>
     </div>
   </section>
 </main>
