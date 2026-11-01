@@ -2501,6 +2501,24 @@ const TRANSLATIONS = [
     "The share menu could not open. Press and hold the image below and choose Save Image.",
     "共有メニューを開けませんでした。下の画像を長押しし、「画像を保存」を選んでください。",
     "공유 메뉴를 열지 못했어요. 아래 이미지를 길게 누른 뒤 '이미지 저장'을 선택해 주세요."
+  ],
+  [
+    "前往遊玩《裂空的伊爾卡》",
+    "Play The Rifted Sky of Irka",
+    "『裂空のイルカ』をプレイする",
+    "《열공의 이르카》 플레이하러 가기"
+  ],
+  [
+    "把人設貼進角色卡，故事就開始囉！",
+    "Paste your profile into the character card and the story begins!",
+    "プロフィールをキャラクターカードに貼れば、物語のはじまり！",
+    "프로필을 캐릭터 카드에 붙여넣으면 이야기가 시작돼요!"
+  ],
+  [
+    "追蹤作者 MUSUN 的 Threads",
+    "Follow the creator MUSUN on Threads",
+    "作者 MUSUN の Threads をフォロー",
+    "작가 MUSUN의 Threads 팔로우"
   ]
 ];
 // Strings use the Traditional Chinese source as their stable lookup key.
